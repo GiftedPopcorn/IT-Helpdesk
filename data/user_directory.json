@@ -1,0 +1,94 @@
+{
+  "users": [
+    {
+      "employee_id": "E1001",
+      "name": "张伟",
+      "email": "zhangwei@acme.com",
+      "department": "engineering",
+      "role": "employee",
+      "location": "shanghai",
+      "devices": [{"type": "laptop", "os": "Windows 11", "hostname": "SH-ZW-01"}],
+      "entitlements": ["vpn", "jira"],
+      "account_status": "active"
+    },
+    {
+      "employee_id": "E2001",
+      "name": "李娜",
+      "email": "lina@acme.com",
+      "department": "sales",
+      "role": "executive",
+      "location": "beijing",
+      "devices": [{"type": "laptop", "os": "macOS", "hostname": "BJ-LN-01"}],
+      "entitlements": ["vpn", "salesforce", "email"],
+      "account_status": "locked"
+    },
+    {
+      "employee_id": "E3001",
+      "name": "王强",
+      "email": "wangqiang@contractor.acme.com",
+      "department": "engineering",
+      "role": "contractor",
+      "location": "shanghai",
+      "devices": [{"type": "laptop", "os": "Windows 10", "hostname": "SH-WQ-01"}],
+      "entitlements": ["jira"],
+      "account_status": "active",
+      "sponsor": "E4001"
+    },
+    {
+      "employee_id": "E4001",
+      "name": "赵敏",
+      "email": "zhaomin@acme.com",
+      "department": "engineering",
+      "role": "manager",
+      "location": "shanghai",
+      "devices": [{"type": "laptop", "os": "macOS", "hostname": "SH-ZM-01"}],
+      "entitlements": ["vpn", "jira", "grafana", "confluence"],
+      "account_status": "active"
+    },
+    {
+      "employee_id": "E1002",
+      "name": "刘洋",
+      "email": "liuyang@acme.com",
+      "department": "finance",
+      "role": "employee",
+      "location": "beijing",
+      "devices": [{"type": "laptop", "os": "Windows 11", "hostname": "BJ-LY-01"}],
+      "entitlements": ["vpn", "email", "sap"],
+      "account_status": "password_expired"
+    },
+    {
+      "employee_id": "E1003",
+      "name": "张伟",
+      "email": "zhangwei2@acme.com",
+      "department": "marketing",
+      "role": "employee",
+      "location": "beijing",
+      "devices": [{"type": "laptop", "os": "macOS", "hostname": "BJ-ZW2-01"}],
+      "entitlements": ["vpn", "email"],
+      "account_status": "active",
+      "note": "与 E1001 同名，用于测试用户查询歧义处理"
+    },
+    {
+      "employee_id": "E1004",
+      "name": "陈晨",
+      "email": "chenchen@acme.com",
+      "department": "engineering",
+      "role": "employee",
+      "location": "hangzhou",
+      "devices": [{"type": "laptop", "os": "Windows 11", "hostname": "HZ-CC-01"}],
+      "entitlements": ["vpn", "jira"],
+      "account_status": "active"
+    },
+    {
+      "employee_id": "E1005",
+      "name": "孙悦",
+      "email": "sunyue@acme.com",
+      "department": "data",
+      "role": "employee",
+      "location": "shanghai",
+      "devices": [{"type": "laptop", "os": "macOS", "hostname": "SH-SY-01"}],
+      "entitlements": ["vpn", "jira", "grafana", "snowflake_readonly"],
+      "account_status": "active"
+    }
+  ]
+}

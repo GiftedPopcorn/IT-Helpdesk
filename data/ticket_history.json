@@ -1,0 +1,104 @@
+{
+  "tickets": [
+    {
+      "id": "T-0187",
+      "category": "vpn",
+      "employee_id": "E1004",
+      "issue_summary": "Windows 11 连接 VPN 报错误 809，无法访问内网",
+      "resolution": "GlobalProtect 客户端低于 7.2.3（CHG-339 强制升级），升级客户端后恢复正常",
+      "resolved_by": "agent",
+      "resolved_at": "2026-10-18T14:30:00+08:00",
+      "tags": ["vpn", "809", "windows", "globalprotect"]
+    },
+    {
+      "id": "T-0203",
+      "category": "vpn",
+      "employee_id": "E1004",
+      "issue_summary": "VPN 登录时 MFA 验证一直失败，提示 token 已过期",
+      "resolution": "MFA 重置属高敏感操作，转人工核验身份后重置 MFA token",
+      "resolved_by": "human",
+      "resolved_at": "2026-10-16T11:00:00+08:00",
+      "tags": ["vpn", "mfa", "token", "升级"]
+    },
+    {
+      "id": "T-0215",
+      "category": "vpn",
+      "employee_id": "E1001",
+      "issue_summary": "上海办公室 VPN 每 15 分钟左右断连一次",
+      "resolution": "确认为 INC-1042 上海出口带宽拥塞（服务端故障），等待恢复，网络组跟进",
+      "resolved_by": "human",
+      "resolved_at": "2026-10-19T22:10:00+08:00",
+      "tags": ["vpn", "断连", "上海", "INC-1042"]
+    },
+    {
+      "id": "T-0155",
+      "category": "password",
+      "employee_id": "E1001",
+      "issue_summary": "忘记密码，登录提示用户名或密码错误",
+      "resolution": "核验身份（工号+部门）后执行自助密码重置，发放临时密码",
+      "resolved_by": "agent",
+      "resolved_at": "2026-10-12T09:20:00+08:00",
+      "tags": ["password", "重置", "自助"]
+    },
+    {
+      "id": "T-0161",
+      "category": "password",
+      "employee_id": "E1002",
+      "issue_summary": "登录提示密码已过期，要求修改但旧密码记不清",
+      "resolution": "核验身份后执行密码重置，随后账号恢复正常",
+      "resolved_by": "agent",
+      "resolved_at": "2026-10-13T16:45:00+08:00",
+      "tags": ["password", "过期", "重置"]
+    },
+    {
+      "id": "T-0172",
+      "category": "access",
+      "employee_id": "E3001",
+      "issue_summary": "承包商申请 Snowflake 生产库只读权限用于数据对账",
+      "resolution": "承包商权限需担保经理（E4001 赵敏）审批，转人工走审批流",
+      "resolved_by": "human",
+      "resolved_at": "2026-10-14T10:15:00+08:00",
+      "tags": ["access", "snowflake", "contractor", "审批"]
+    },
+    {
+      "id": "T-0179",
+      "category": "access",
+      "employee_id": "E1005",
+      "issue_summary": "数据组新人申请 Grafana 只读权限",
+      "resolution": "属岗位标准软件授权范围，Agent 核验身份后直接授予",
+      "resolved_by": "agent",
+      "resolved_at": "2026-10-15T15:30:00+08:00",
+      "tags": ["access", "grafana", "标准授权"]
+    },
+    {
+      "id": "T-0190",
+      "category": "account",
+      "employee_id": "E2001",
+      "issue_summary": "高管账号被锁定，无法登录邮箱和 CRM",
+      "resolution": "高管账号操作一律转人工，IT 主管核验后解锁",
+      "resolved_by": "human",
+      "resolved_at": "2026-10-17T09:00:00+08:00",
+      "tags": ["account", "locked", "executive", "升级"]
+    },
+    {
+      "id": "T-0221",
+      "category": "vpn",
+      "employee_id": "E1003",
+      "issue_summary": "macOS 连接公司 WiFi 提示证书验证失败，进而无法连 VPN",
+      "resolution": "系统时间偏差导致证书校验失败，校准时间并重装公司根证书后恢复",
+      "resolved_by": "agent",
+      "resolved_at": "2026-10-11T13:00:00+08:00",
+      "tags": ["wifi", "证书", "macos"]
+    },
+    {
+      "id": "T-0230",
+      "category": "email",
+      "employee_id": "E1005",
+      "issue_summary": "给客户发邮件收到 554 退信",
+      "resolution": "邮件含可疑链接被对方反垃圾拦截，改用公司网盘链接后发送成功",
+      "resolved_by": "agent",
+      "resolved_at": "2026-10-10T17:20:00+08:00",
+      "tags": ["email", "554", "退信"]
+    }
+  ]
+}

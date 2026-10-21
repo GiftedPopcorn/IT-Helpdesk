@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acme IT 支持 Agent</title>
+<style>
+  :root {
+    --bg: #f5f7fa; --card: #fff; --line: #e4e9f0;
+    --text: #24292e; --muted: #6a737d;
+    --brand: #2563eb; --brand-soft: #eff6ff;
+    --ok: #16a34a; --warn: #d97706; --info: #2563eb; --bad: #dc2626;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+    height: 100vh; display: flex; flex-direction: column;
+  }
+  header {
+    background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  header h1 { font-size: 16px; margin: 0; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  header button {
+    margin-left: auto; border: 1px solid var(--line); background: var(--card);
+    border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 13px;
+  }
+  header button:hover { background: var(--brand-soft); }
+  #chat {
+    flex: 1; overflow-y: auto; padding: 20px;
+    display: flex; flex-direction: column; gap: 14px; max-width: 860px;
+    width: 100%; margin: 0 auto;
+  }
+  .msg { display: flex; }
+  .msg.user { justify-content: flex-end; }
+  .bubble {
+    max-width: 78%; border-radius: 12px; padding: 10px 14px;
+    font-size: 14px; line-height: 1.65; white-space: pre-wrap;
+  }
+  .msg.user .bubble { background: var(--brand); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.agent .bubble {
+    background: var(--card); border: 1px solid var(--line);
+    border-bottom-left-radius: 4px;
+  }
+  .meta { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .tag {
+    font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600;
+  }
+  .tag.resolved { background: #dcfce7; color: var(--ok); }
+  .tag.pending_user { background: #fef3c7; color: var(--warn); }
+  .tag.need_info { background: #dbeafe; color: var(--info); }
+  .tag.escalated { background: #fee2e2; color: var(--bad); }
+  .conf { font-size: 11px; color: var(--muted); }
+  details.trace {
+    margin-top: 8px; font-size: 12px; color: var(--muted);
+    border-top: 1px dashed var(--line); padding-top: 6px;
+  }
+  details.trace summary { cursor: pointer; user-select: none; }
+  .tool-line { margin: 4px 0 0 12px; font-family: Consolas, monospace; }
+  .tool-line .ok { color: var(--ok); }
+  .tool-line .error { color: var(--bad); }
+  .esc-card {
+    margin-top: 8px; background: #fff7f7; border: 1px solid #fecaca;
+    border-radius: 8px; padding: 8px 12px; font-size: 12.5px; white-space: pre-wrap;
+  }
+  .esc-card b { color: var(--bad); }
+  .evidence { margin-top: 6px; font-size: 11.5px; color: var(--muted); }
+  .thinking { color: var(--muted); font-size: 13px; }
+  #composer {
+    border-top: 1px solid var(--line); background: var(--card);
+    padding: 12px 20px;
+  }
+  #composer .inner {
+    max-width: 860px; margin: 0 auto; display: flex; gap: 10px;
+  }
+  #input {
+    flex: 1; border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 12px; font-size: 14px; outline: none; resize: none;
+    font-family: inherit; height: 44px;
+  }
+  #input:focus { border-color: var(--brand); }
+  #send {
+    background: var(--brand); color: #fff; border: none; border-radius: 8px;
+    padding: 0 22px; font-size: 14px; cursor: pointer;
+  }
+  #send:disabled { opacity: 0.5; cursor: default; }
+  .hint {
+    max-width: 860px; margin: 8px auto 0; color: var(--muted); font-size: 12px;
+  }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .chip {
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px;
+    font-size: 12px; cursor: pointer; background: var(--card); color: var(--muted);
+  }
+  .chip:hover { border-color: var(--brand); color: var(--brand); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Acme IT 支持 Agent</h1>
+    <div class="sub">对话式诊断 · 工具调查 · 解决 or 升级</div>
+  </div>
+  <button id="newSession">新会话</button>
+</header>
+
+<div id="chat">
+  <div class="msg agent"><div class="bubble">
+    你好，我是 Acme 的 IT 支持 Agent。直接描述你遇到的问题即可，
+    比如登录不上、VPN 断连、需要申请某个系统的权限。
+    <div class="chips">
+      <span class="chip" data-text="我密码忘了，登录不进去">密码重置</span>
+      <span class="chip" data-text="VPN 连不上了，报错误 809">VPN 报 809</span>
+      <span class="chip" data-text="我是新来的，需要申请 Grafana 权限">权限申请</span>
+    </div>
+  </div></div>
+</div>
+
+<div id="composer">
+  <div class="inner">
+    <textarea id="input" placeholder="描述你的 IT 问题，回车发送（Shift+回车换行）"></textarea>
+    <button id="send">发送</button>
+  </div>
+  <div class="hint">Agent 会调用知识库/系统状态/员工目录等工具调查；超出能力范围的问题会自动升级人工并生成完整工单。</div>
+</div>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+const send = document.getElementById("send");
+let sessionId = null;
+let busy = false;
+
+const STATE_LABEL = {
+  resolved: "已解决", pending_user: "待你操作",
+  need_info: "追问中", escalated: "已升级人工",
+};
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function scrollBottom() { chat.scrollTop = chat.scrollHeight; }
+
+function addUser(text) {
+  const m = el("div", "msg user");
+  m.appendChild(el("div", "bubble", text));
+  chat.appendChild(m); scrollBottom();
+}
+
+function addAgent(data) {
+  const m = el("div", "msg agent");
+  const b = el("div", "bubble");
+  b.appendChild(el("span", "", data.reply));
+
+  // 状态标签 + 置信度（透明度护栏的可视化）
+  const meta = el("div", "meta");
+  meta.appendChild(el("span", "tag " + data.state, STATE_LABEL[data.state] || data.state));
+  meta.appendChild(el("span", "conf", "置信度 " + Math.round((data.confidence || 0) * 100) + "%"));
+  b.appendChild(meta);
+
+  // 工具调查轨迹（可折叠）
+  if (data.tools_used && data.tools_used.length) {
+    const d = el("details", "trace");
+    d.appendChild(el("summary", "", "本次调查轨迹（" + data.tools_used.length + " 次工具调用）"));
+    for (const t of data.tools_used) {
+      const line = el("div", "tool-line");
+      const s = el("span", t.status, t.status === "ok" ? "✓" : "✗");
+      line.appendChild(s);
+      line.appendChild(document.createTextNode(" " + t.name + " " + JSON.stringify(t.args) + " · " + t.ms + "ms"));
+      d.appendChild(line);
+    }
+    b.appendChild(d);
+  }
+
+  // 证据来源
+  if (data.evidence && data.evidence.length) {
+    b.appendChild(el("div", "evidence", "证据: " + data.evidence.join(" · ")));
+  }
+
+  // 升级工单卡片
+  if (data.escalation) {
+    const card = el("div", "esc-card");
+    card.appendChild(el("b", "", "升级工单 " + (data.escalation.ticket_id || "") +
+      " · 原因: " + data.escalation.reason + " · 紧急度: " + data.escalation.urgency));
+    card.appendChild(el("div", "", data.escalation.summary || ""));
+    b.appendChild(card);
+  }
+
+  m.appendChild(b); chat.appendChild(m); scrollBottom();
+}
+
+function addThinking() {
+  const m = el("div", "msg agent");
+  const b = el("div", "bubble thinking", "正在调查中…");
+  m.appendChild(b); chat.appendChild(m); scrollBottom();
+  return m;
+}
+
+async function sendMsg(text) {
+  if (!text || busy) return;
+  busy = true; send.disabled = true;
+  addUser(text);
+  const th = addThinking();
+  try {
+    const resp = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, message: text }),
+    });
+    const data = await resp.json();
+    sessionId = data.session_id;
+    th.remove();
+    addAgent(data);
+  } catch (err) {
+    th.remove();
+    const m = el("div", "msg agent");
+    m.appendChild(el("div", "bubble", "网络异常，请稍后重试。"));
+    chat.appendChild(m); scrollBottom();
+  } finally {
+    busy = false; send.disabled = false; input.focus();
+  }
+}
+
+send.addEventListener("click", () => { sendMsg(input.value.trim()); input.value = ""; });
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMsg(input.value.trim()); input.value = "";
+  }
+});
+document.querySelectorAll(".chip").forEach((c) =>
+  c.addEventListener("click", () => sendMsg(c.dataset.text)));
+document.getElementById("newSession").addEventListener("click", () => location.reload());
+input.focus();
+</script>
+</body>
+</html>

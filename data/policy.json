@@ -1,0 +1,65 @@
+{
+  "actions": [
+    {
+      "action": "reset_password",
+      "description": "自助密码重置，发放临时密码",
+      "agent_allowed": true,
+      "conditions": ["identity_verified", "role != executive"]
+    },
+    {
+      "action": "unlock_account",
+      "description": "解锁被锁定的账号",
+      "agent_allowed": true,
+      "conditions": ["identity_verified", "role != executive"]
+    },
+    {
+      "action": "grant_standard_software",
+      "description": "授予岗位标准软件授权（Jira/Confluence/Grafana 只读等）",
+      "agent_allowed": true,
+      "conditions": ["identity_verified", "role == employee"]
+    },
+    {
+      "action": "grant_access_contractor",
+      "description": "承包商权限申请",
+      "agent_allowed": false,
+      "requires": "manager_approval"
+    },
+    {
+      "action": "grant_admin_rights",
+      "description": "授予系统管理员权限",
+      "agent_allowed": false,
+      "requires": "human_approval"
+    },
+    {
+      "action": "grant_production_db",
+      "description": "授予生产数据库权限（Snowflake production 等）",
+      "agent_allowed": false,
+      "requires": "human_approval"
+    },
+    {
+      "action": "mfa_reset",
+      "description": "重置 MFA token / 解绑验证器",
+      "agent_allowed": false,
+      "requires": "human_verification"
+    },
+    {
+      "action": "executive_account_ops",
+      "description": "高管账号的任何操作（重置/解锁/权限变更）",
+      "agent_allowed": false,
+      "requires": "human_verification"
+    }
+  ],
+  "escalation_triggers": [
+    "policy_forbidden",
+    "identity_unverified",
+    "low_confidence_no_progress",
+    "clarification_loop",
+    "max_steps_exceeded",
+    "out_of_scope",
+    "user_request"
+  ],
+  "verification": {
+    "method": "employee_id + department 双字段与员工目录比对",
+    "note": "demo 级简化。生产环境应使用 SSO/MFA 完成强身份核验"
+  }
+}

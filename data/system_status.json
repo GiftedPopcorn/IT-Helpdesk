@@ -1,0 +1,38 @@
+{
+  "services": [
+    {"name": "vpn-gateway", "status": "degraded", "note": "上海出口带宽拥塞，连接质量下降"},
+    {"name": "email", "status": "healthy", "note": ""},
+    {"name": "sso", "status": "healthy", "note": ""},
+    {"name": "salesforce", "status": "healthy", "note": ""},
+    {"name": "jenkins", "status": "healthy", "note": ""}
+  ],
+  "active_incidents": [
+    {
+      "id": "INC-1042",
+      "services": ["vpn-gateway"],
+      "severity": "major",
+      "summary": "上海办公室 VPN 间歇性断连，出口带宽拥塞中",
+      "started_at": "2026-10-19T21:00:00+08:00",
+      "eta": "约 2 小时后恢复",
+      "workaround": "可切换至杭州出口节点：vpn-hz.acme.com"
+    }
+  ],
+  "recent_changes": [
+    {
+      "id": "CHG-339",
+      "service": "vpn-gateway",
+      "summary": "GlobalProtect 客户端强制升级至 7.2.3",
+      "deployed_at": "2026-10-17T10:00:00+08:00",
+      "status": "completed",
+      "known_issue": "旧版本客户端将无法连接，报错误 809"
+    },
+    {
+      "id": "CHG-336",
+      "service": "sso",
+      "summary": "Okta 登录页品牌样式更新",
+      "deployed_at": "2026-10-15T09:00:00+08:00",
+      "status": "completed",
+      "known_issue": ""
+    }
+  ]
+}
