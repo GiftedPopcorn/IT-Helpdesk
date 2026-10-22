@@ -242,7 +242,7 @@ Defense in depth, each layer independent of LLM goodwill:
 | Escalation recall | 1.00 |
 | Mis-escalations | **0** |
 | Avg turn latency | 4.0s |
-| Total tokens | 139,041 |
+| Total tokens | 157,262 |
 
 The iterative process (7/13 → 10/13 → 11/13 → 12/13 → 12/13 → 11/13 → **13/13**) is documented in [TEST_REPORT.md](TEST_REPORT.md) with per-round root-cause analysis. Notably, two of the seven rounds exposed **code-level defects** (read-only tools entering the action ledger; a category-merge timing bug in the summary engine) that mock-based testing could not catch — evidence that running the same eval suite against a real LLM is a genuine integration test, not just a demo.
 

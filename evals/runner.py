@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -125,7 +126,9 @@ def main():
     args = ap.parse_args()
 
     settings = get_settings()
-    updates = {"trace_log_path": "logs/trace_eval.jsonl"}  # 评测 trace 与线上分开
+    updates = {
+        "trace_log_path": os.environ.get("EVAL_TRACE_PATH", "logs/trace_eval.jsonl")
+    }  # 评测 trace 与线上分开；可用 EVAL_TRACE_PATH 覆盖（如受限环境）
     if args.provider:
         updates["llm_provider"] = args.provider
     settings = settings.model_copy(update=updates)
@@ -206,15 +209,27 @@ def main():
     for k, v in metrics.items():
         print(f"{k:<24} {v}")
 
-    out = ROOT / "evals" / "report.json"
-    out.write_text(
-        json.dumps(
-            {"provider": settings.llm_provider, "metrics": metrics, "cases": report_cases},
-            ensure_ascii=False, indent=2,
-        ),
-        encoding="utf-8",
+    payload = json.dumps(
+        {"provider": settings.llm_provider, "metrics": metrics, "cases": report_cases},
+        ensure_ascii=False, indent=2,
     )
-    print(f"\n报告已写入 {out}")
+    # 默认写 evals/report.json；可用 EVAL_REPORT_PATH 覆盖；
+    # 目标路径无写权限（如受限沙箱）时降级到系统临时目录，评测结果不因落盘失败而丢失
+    candidates = [
+        Path(os.environ["EVAL_REPORT_PATH"])
+        if os.environ.get("EVAL_REPORT_PATH")
+        else ROOT / "evals" / "report.json",
+        Path(tempfile.gettempdir()) / "it_helpdesk_eval_report.json",
+    ]
+    for out in candidates:
+        try:
+            out.write_text(payload, encoding="utf-8")
+            print(f"\n报告已写入 {out}")
+            break
+        except OSError as exc:
+            last_exc = exc
+    else:
+        print(f"\n警告：报告落盘失败：{last_exc}")
     sys.exit(0 if passed_n == n else 1)
 
 
