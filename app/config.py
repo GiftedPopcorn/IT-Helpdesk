@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     agent_confidence_floor: float = 0.7  # 置信度地板：低于此值先追问而非硬答
     agent_max_context_messages: int = 12  # 构建提示时最多携带的最近消息条数
 
+    # ---- 工具执行护栏 ----
+    tool_timeout_seconds: int = 15  # 单个工具调用最大耗时，超时返回 timeout 错误
+
     # ---- 路径 ----
     data_dir: str = "data"
     trace_log_path: str = "logs/trace.jsonl"

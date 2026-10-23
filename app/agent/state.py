@@ -25,6 +25,7 @@ class IssueContext:
     symptoms: List[str] = field(default_factory=list)
     attempted: List[str] = field(default_factory=list)
     unresolved_questions: List[str] = field(default_factory=list)
+    conflicts: List[str] = field(default_factory=list)  # 数据源矛盾点，如 "kb: 建议重启 vs system_status: 维护中"
 
     def merge(self, update: Dict[str, Any]) -> None:
         """用 LLM 给的增量更新合并问题卡（None/缺省字段不覆盖）。"""
@@ -38,7 +39,7 @@ class IssueContext:
             # 身份核验只能由代码在工具执行后置位，这里只接受 LLM 的"已核验"声明做交叉，
             # 但最终以 lookup_user + 比对逻辑为准（见 loop.py 的 _maybe_verify_identity）
             self.verified_identity = self.verified_identity or update["verified_identity"]
-        for key in ("symptoms", "attempted", "unresolved_questions"):
+        for key in ("symptoms", "attempted", "unresolved_questions", "conflicts"):
             v = update.get(key)
             if isinstance(v, list):
                 merged = getattr(self, key)
@@ -53,7 +54,8 @@ class IssueContext:
             f"用户={self.user_id or '未知'} | 身份核验={verified} | "
             f"影响服务={self.affected_service or '未知'} | "
             f"症状={self.symptoms or '无'} | 已尝试={self.attempted or '无'} | "
-            f"未解决疑点={self.unresolved_questions or '无'}"
+            f"未解决疑点={self.unresolved_questions or '无'} | "
+            f"证据冲突={self.conflicts or '无'}"
         )
 
 
@@ -62,7 +64,7 @@ class Hypothesis:
     """一条诊断假设及其验证状态。"""
 
     text: str
-    status: str = "testing"  # testing | confirmed | rejected
+    status: str = "testing"  # testing | confirmed | rejected | conflicted
     evidence: List[str] = field(default_factory=list)
 
 

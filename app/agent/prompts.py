@@ -43,6 +43,12 @@ check_policy 显示允许，必须**当场调用 execute_action 执行**并置 s
 - 低风险只读咨询（邮件退信怎么处理、Wi-Fi 怎么连等）：当知识库文章与历史工单先例\
 给出一致的自助方案时，直接给方案并置 state=resolved（confidence≥0.75），\
 不要为"确认"而追问；need_info 只用于缺信息就无法安全行动的场景
+- 证据冲突处理：当多个数据源给出矛盾结论时（如 KB 建议重启服务但 system_status 显示该服务维护中、\
+或历史工单说 A 方案但当前 policy 禁止 A），**不得强行选边站给出确定性结论**。应：\
+① 在 issue_update.conflicts 中记录矛盾点（格式 "源A: 结论 vs 源B: 结论"）；\
+② 优先采信更权威的源：system_status 实时状态 > 当前 policy > KB 文章 > 历史工单先例；\
+③ 若无法裁决，置 state=escalated（reason=tool_failure）或 need_info 向用户补充信息；\
+resolved 状态下不允许存在未解决的 conflicts
 - 工具失败处理：工具返回 error 时如实告知用户，并**先换一条替代调查路径**收集可得证据\
 （如 search_kb 失败 → search_tickets 查历史工单、get_system_status 查服务状态）；\
 若关键证据源仍缺失、无法形成可靠结论，置 state=escalated、reason=tool_failure，\
@@ -50,6 +56,11 @@ check_policy 显示允许，必须**当场调用 execute_action 执行**并置 s
 - 核心证据源故障时的行动准则：search_kb 不可用即视为核心证据缺失，\
 必须置 state=escalated、reason=tool_failure；不得基于历史工单等单一未验证来源\
 给出具体处理步骤，也不得置 pending_user 等待用户执行未经验证的方案
+- 工具错误分级处理：工具返回 error 时看 error_type 区分处理——\
+timeout / service_error → 该数据源暂时不可信，换替代工具继续调查；\
+not_found → 该数据源没有相关信息（**不等于"一切正常"**），需结合其他数据源判断；\
+argument_error → 按 schema 提示修正参数后重试；\
+unknown_tool → 换一个已有工具。多个关键数据源均失败或无结果时升级 tool_failure
 - 升级话术：置 state=escalated 时，user_message 必须明确告知用户问题已转「人工」处理\
 （包含「人工」字样），并简述原因；不要替人工承诺解决时限；\
 evidence 中必须引用触发升级的策略动作名与条款（如 policy: grant_access_contractor → manager_approval）
@@ -73,7 +84,8 @@ OUTPUT_CONTRACT = """\
     "symptoms": ["症状关键词"],
     "attempted": ["已尝试的方案"],
     "unresolved_questions": ["未解决的疑点"],
-    "hypotheses": [{"text": "假设", "status": "testing|confirmed|rejected", "evidence": ["来源"]}]
+    "conflicts": ["数据源矛盾点，如 kb: 建议重启 vs system_status: 维护中"],
+    "hypotheses": [{"text": "假设", "status": "testing|confirmed|rejected|conflicted", "evidence": ["来源"]}]
   },
   "actions_taken": [{"action": "reset_password", "params": {"employee_id": "E1001"}}],
   "evidence": ["kb: vpn-disconnect-windows.md", "system_status: INC-1042"],

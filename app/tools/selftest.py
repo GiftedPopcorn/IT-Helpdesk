@@ -68,6 +68,9 @@ def main() -> int:
         "工具故障升级规则": "tool_failure",
         "升级话术含人工": "「人工」",
         "越界即升级": "超出能力",
+        "证据冲突处理": "证据冲突处理",
+        "工具错误分级": "error_type",
+        "resolved 不允许未解决冲突": "resolved 状态下不允许存在未解决的 conflicts",
     }
     for label, needle in guards.items():
         if needle not in system_prompt:

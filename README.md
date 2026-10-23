@@ -6,7 +6,7 @@ Focus scenarios (done in depth): **password reset / account lockout**, **VPN dis
 
 > Core design principle: **the LLM does the reasoning and conversation; deterministic code enforces the boundaries.** Escalation decisions, tool execution, and output parsing are all guarded by rules that a prompt cannot override — not even with `confidence: 0.99`.
 
-**What a successful interaction looks like** (from the employee's perspective): describe the problem in one natural-language message, answer at most one or two clarifying questions, and get a resolution or a human handoff **in under 2 minutes — without ever filing a ticket or repeating context to a second person**. The 13-case eval suite runs end-to-end at ~4 s/turn on deepseek-chat.
+**What a successful interaction looks like** (from the employee's perspective): describe the problem in one natural-language message, answer at most one or two clarifying questions, and get a resolution or a human handoff **in under 2 minutes — without ever filing a ticket or repeating context to a second person**. The 13-case eval suite runs end-to-end at ~4.8 s/turn on deepseek-chat.
 
 ---
 
@@ -241,8 +241,8 @@ Defense in depth, each layer independent of LLM goodwill:
 | Resolution rate | 1.00 |
 | Escalation recall | 1.00 |
 | Mis-escalations | **0** |
-| Avg turn latency | 4.0s |
-| Total tokens | 157,262 |
+| Avg turn latency | 4.8s |
+| Total tokens | 192,387 |
 
 The iterative process (7/13 → 10/13 → 11/13 → 12/13 → 12/13 → 11/13 → **13/13**) is documented in [TEST_REPORT.md](TEST_REPORT.md) with per-round root-cause analysis. Notably, two of the seven rounds exposed **code-level defects** (read-only tools entering the action ledger; a category-merge timing bug in the summary engine) that mock-based testing could not catch — evidence that running the same eval suite against a real LLM is a genuine integration test, not just a demo.
 

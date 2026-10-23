@@ -5,7 +5,8 @@
 - LLM 自报 confidence 只用于"知识性不确定"的软判断
 - 摘要完整性由模板兜底，不依赖 LLM 自觉
 
-五条规则（顺序执行）：
+六条规则（顺序执行）：
+0. 证据冲突护栏：resolved/pending_user 带未解决冲突 → 改写为 need_info
 1. 硬边界：决议中的动作被 policy 禁止 → 强制升级（policy_forbidden）
 2. 身份门槛：账号类动作但身份未核验 → 改写为追问；追问 2 次仍未核验 → 升级
 3. 置信度地板：低置信 → 先追问；追问过仍无新证据 → 升级
@@ -57,6 +58,20 @@ class OutcomeEngine:
             return Verdict("rewrite", self.fallback_final(state, "invalid_state"),
                            reason="invalid_state", notes=[f"非法 state={state_name}"])
         conf = _as_float(final.get("confidence"), 0.5)
+
+        # 规则 0：证据冲突护栏 —— resolved/pending_user 不允许带未解决的证据冲突，
+        # 否则强制改为 need_info 让用户澄清冲突，避免把矛盾包装成确定答案
+        if state_name in ("resolved", "pending_user") and state.issue.conflicts:
+            rewritten = dict(final)
+            rewritten["state"] = "need_info"
+            rewritten["confidence"] = min(conf, 0.5)
+            rewritten["user_message"] = (
+                "我查到的信息之间有矛盾，需要再确认一下："
+                + "；".join(state.issue.conflicts[:2])
+                + "。请告诉我哪个更符合你实际看到的情况？"
+            )
+            return Verdict("rewrite", rewritten, reason="conflict_guard",
+                           notes=[f"未解决冲突: {state.issue.conflicts}"])
 
         # 规则 1：硬边界 —— 决议中的动作被 policy 禁止 → 无视 confidence 强制升级
         for act in final.get("actions_taken", []) or []:
@@ -206,6 +221,7 @@ class OutcomeEngine:
             f"- 症状: {', '.join(issue.symptoms) or '无'}\n"
             f"- 已确认假设: {'; '.join(confirmed) or '无'}\n"
             f"- 已排除假设: {'; '.join(rejected) or '无'}\n"
+            f"- 证据冲突: {'; '.join(issue.conflicts) or '无'}\n"
             f"- 已尝试方案: {'; '.join(attempted) or '无'}\n"
             f"- 关键证据: {'; '.join(evidence) or '无'}\n"
             f"- 升级原因: {reason}{trigger_line}\n"
