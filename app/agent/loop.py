@@ -600,13 +600,13 @@ class AgentLoop:
 
         - 只读诊断工具不是"动作"，跳过
         - 幂等键 = (动作, 目标, 资源签名)，含完整资源参数，避免不同资源被错误去重（A03）
-        - 补执行被拒或传输失败 → 强制升级（不能声称成功，修复 A04）
-        - 全部成功 → 依据真实结果重新生成回复，不保留 LLM 可能编造的密码/状态
+        - 补执行被拒或传输失败 → 记录被拒动作，不丢失已成功的动作结果（E04）
+        - 部分成功部分被拒 → 回复同时包含成功结果和被拒说明，state=escalated
+        - 全部成功 → 依据真实结果重新生成回复
+        - G03：本轮有被拒的 execute_action 且未重试成功时，不允许 state=resolved 声称成功
         """
         declared = [a for a in (final.get("actions_taken") or []) if isinstance(a, dict)]
         declared = [a for a in declared if a.get("action") not in READONLY_TOOLS]
-        if not declared:
-            return final
 
         # 已成功执行的动作集合（按完整资源去重键）
         executed_ok = set()
@@ -648,22 +648,40 @@ class AgentLoop:
                 denied_clause = denied_clause or clause
                 denied_action = denied_action or name
 
-        # 任意动作失败（含传输故障）→ 强制升级，绝不声称成功
-        if denied_clause:
+        # G03：收集本轮所有被拒且未重试成功的 execute_action（含未声明的）
+        denied_this_turn = [
+            r for r in state.tool_records
+            if r.turn == state.turn_count and r.name == "execute_action"
+            and r.status == "error"
+        ]
+        has_denied = bool(denied_clause) or bool(denied_this_turn)
+
+        # 有被拒动作 → 不能声称全部成功
+        if has_denied:
             reason = (
-                "identity_unverified" if "identity" in denied_clause.lower()
-                else "policy_forbidden" if any(k in denied_clause.lower() for k in ("policy", "condition", "whitelist", "forbidden"))
+                "identity_unverified" if denied_clause and "identity" in denied_clause.lower()
+                else "policy_forbidden" if denied_clause and any(
+                    k in denied_clause.lower() for k in ("policy", "condition", "whitelist", "forbidden"))
                 else "action_failed"
             )
             esc = dict(final)
             esc["state"] = "escalated"
             esc["escalation"] = dict(esc.get("escalation") or {})
             esc["escalation"]["reason"] = reason
-            esc["escalation"]["forbidden_action"] = denied_action
-            detail = denied_clause.split(":")[-1] if ":" in denied_clause else denied_clause
-            esc["user_message"] = (
-                f"这个操作我暂时无法完成（{detail}），已转人工处理。"
-            )
+            if denied_action:
+                esc["escalation"]["forbidden_action"] = denied_action
+            # E04：部分成功时，回复同时包含已完成的动作结果和被拒说明
+            success_reply = self._build_reply_from_results(ok_results) if ok_results else ""
+            denied_names = sorted(set(
+                (r.args or {}).get("action", "") for r in denied_this_turn
+                if (r.args or {}).get("action")
+            ))
+            denied_detail = denied_clause.split(":")[-1] if ":" in denied_clause else (denied_clause or "需人工审批")
+            denied_msg = (
+                f"以下操作无法自动完成（{denied_detail}），已转人工处理："
+                + "、".join(denied_names)
+            ) if denied_names else f"部分操作无法完成（{denied_detail}），已转人工处理。"
+            esc["user_message"] = (success_reply + "\n" + denied_msg) if success_reply else denied_msg
             return self.outcome.complete_summary(esc, state, force_reason=reason)
 
         # 全部成功：依据真实结果重新生成回复（禁止仅追加密码）
