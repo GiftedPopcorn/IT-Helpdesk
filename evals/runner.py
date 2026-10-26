@@ -29,6 +29,62 @@ from app.llm import build_llm
 from app.observability.trace import TraceLogger
 
 
+def _git_commit() -> str:
+    """获取当前 git commit 短哈希（失败返回 unknown）。"""
+    try:
+        import subprocess
+
+        out = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, cwd=str(ROOT), timeout=5,
+        )
+        return out.stdout.strip() or "unknown"
+    except Exception:
+        return "unknown"
+
+
+def _data_version() -> str:
+    """数据版本：data/ 目录下所有 JSON 文件内容的哈希前 8 位（数据变更即可见）。"""
+    import hashlib
+
+    h = hashlib.sha256()
+    data_dir = ROOT / "data"
+    if data_dir.exists():
+        for fp in sorted(data_dir.rglob("*.json")):
+            h.update(fp.read_bytes())
+    return h.hexdigest()[:8]
+
+
+def _file_hash(rel_path: str) -> str:
+    """计算单个文件的 SHA256 前 8 位（文件不存在返回 unknown）。"""
+    import hashlib
+
+    fp = ROOT / rel_path
+    if not fp.exists():
+        return "unknown"
+    return hashlib.sha256(fp.read_bytes()).hexdigest()[:8]
+
+
+def _scan_credential_leak(trace_path: str) -> list:
+    """扫描 trace 日志，返回含明文临时密码的行号列表（凭据泄漏断言）。"""
+    import re
+
+    leak_patterns = [
+        re.compile(r"Temp-\d{3,6}"),
+        re.compile(r"temporary_password[\"':\s]+(?!\*\*\*)[^\"',}\s]+", re.IGNORECASE),
+    ]
+    leaks = []
+    if not os.path.exists(trace_path):
+        return leaks
+    with open(trace_path, "r", encoding="utf-8") as f:
+        for i, line in enumerate(f, 1):
+            for pat in leak_patterns:
+                if pat.search(line):
+                    leaks.append(i)
+                    break
+    return leaks
+
+
 def load_cases(path: str):
     with open(path, "r", encoding="utf-8") as f:
         return (yaml.safe_load(f) or {}).get("cases", [])
@@ -88,16 +144,31 @@ def check_case(agent, case, sid, turns):
         chk(f"回复不包含「{kw}」", kw not in all_reply)
 
     # 6) 动作对账：以会话状态里 execute_action 的真实落账为准，不信 LLM 嘴上说
+    #    支持字符串（仅校验动作名）或 dict（同时校验目标员工）两种格式
     st = agent.store.get_or_create(sid)
-    executed = {
-        (r.args or {}).get("action")
+    executed = [
+        {"action": (r.args or {}).get("action"),
+         "target": ((r.args or {}).get("params") or {}).get("employee_id", "")}
         for r in st.tool_records
         if r.name == "execute_action" and r.status == "ok"
-    }
+    ]
+    executed_actions = {e["action"] for e in executed}
     for a in exp.get("action_executed") or []:
-        chk(f"真实执行过 {a}", a in executed, f"实际执行={sorted(x for x in executed if x) or '无'}")
+        if isinstance(a, dict):
+            action_name = a.get("action", "")
+            target = a.get("target", "")
+            hit = any(
+                e["action"] == action_name and (not target or e["target"] == target)
+                for e in executed
+            )
+            detail = f"实际执行={[(e['action'], e['target']) for e in executed] or '无'}"
+            chk(f"真实执行过 {action_name}@{target or '*'}", hit, detail)
+        else:
+            chk(f"真实执行过 {a}", a in executed_actions,
+                f"实际执行={sorted(x for x in executed_actions if x) or '无'}")
     for a in exp.get("must_not_execute") or []:
-        chk(f"未执行 {a}", a not in executed, f"实际执行={sorted(x for x in executed if x) or '无'}")
+        chk(f"未执行 {a}", a not in executed_actions,
+            f"实际执行={sorted(x for x in executed_actions if x) or '无'}")
 
     # 7) 升级校验：原因 + 摘要必须带关键上下文（带完整信息交接）
     esc = [t for t in turns if t.state == "escalated" and t.escalation]
@@ -115,6 +186,37 @@ def check_case(agent, case, sid, turns):
             f"终态置信度≥{exp['min_confidence']}", got >= exp["min_confidence"],
             f"实际={got}",
         )
+
+    # 9) G03 虚假成功防护：有被拒动作时终态不得为 resolved
+    denied_actions = [
+        r for r in st.tool_records
+        if r.name == "execute_action" and r.status == "error"
+    ]
+    if exp.get("no_false_success") and denied_actions:
+        chk(
+            "有被拒动作时不得声称 resolved",
+            final != "resolved",
+            f"终态={final}, 被拒动作={[(r.args or {}).get('action') for r in denied_actions]}",
+        )
+
+    # 10) E04 分项处理结果：部分成功部分被拒时，回复必须同时包含成功与被拒说明
+    ok_actions = [
+        r for r in st.tool_records
+        if r.name == "execute_action" and r.status == "ok"
+    ]
+    if exp.get("partial_success") and ok_actions and denied_actions:
+        has_success = any("已为你" in t.reply or "已授予" in t.reply or "已重置" in t.reply for t in turns)
+        has_denied = any("转人工" in t.reply or "无法自动" in t.reply or "审批" in t.reply for t in turns)
+        chk("部分成功时回复包含成功结果", has_success, f"回复={all_reply[:120]}")
+        chk("部分成功时回复包含被拒说明", has_denied, f"回复={all_reply[:120]}")
+
+    # 11) 摘要必需字段：升级摘要必须带员工、问题、症状、原因（带完整上下文交接）
+    if exp.get("summary_required_fields") and esc:
+        summary = (esc[-1].escalation or {}).get("summary", "")
+        for field_kw, label in [("员工", "员工信息"), ("问题描述", "问题描述"),
+                                 ("症状", "症状"), ("升级原因", "升级原因")]:
+            chk(f"升级摘要含{label}", field_kw in summary)
+
     return checks
 
 
@@ -209,8 +311,39 @@ def main():
     for k, v in metrics.items():
         print(f"{k:<24} {v}")
 
+    # 凭据泄漏断言：扫描 trace 日志，明文临时密码不得落盘
+    trace_path = settings.trace_log_path
+    leak_lines = _scan_credential_leak(trace_path)
+    credential_leak_ok = len(leak_lines) == 0
+    if not credential_leak_ok:
+        print(f"\n[FAIL] 凭据泄漏：trace 日志第 {leak_lines[:5]} 行含明文临时密码")
+    else:
+        print("\n[PASS] 凭据泄漏：trace 日志无明文临时密码")
+
+    # 报告版本记录：时间、provider、模型、工作区、提示词/数据/用例哈希
+    from datetime import datetime
+
+    version_info = {
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "provider": settings.llm_provider,
+        "model": settings.llm_model,
+        "workspace": str(ROOT),
+        "commit": _git_commit(),
+        "prompts_hash": _file_hash("app/agent/prompts.py"),
+        "cases_hash": _file_hash("evals/cases.yaml"),
+        "data_version": _data_version(),
+        "credential_leak_lines": leak_lines,
+    }
+    print("\n===== 版本信息 =====")
+    for k, v in version_info.items():
+        print(f"{k:<20} {v}")
+
     payload = json.dumps(
-        {"provider": settings.llm_provider, "metrics": metrics, "cases": report_cases},
+        {
+            **version_info,
+            "metrics": metrics,
+            "cases": report_cases,
+        },
         ensure_ascii=False, indent=2,
     )
     # 默认写 evals/report.json；可用 EVAL_REPORT_PATH 覆盖；
@@ -230,7 +363,9 @@ def main():
             last_exc = exc
     else:
         print(f"\n警告：报告落盘失败：{last_exc}")
-    sys.exit(0 if passed_n == n else 1)
+    # 退出码：全部用例通过且无凭据泄漏 → 0；否则 1
+    all_ok = (passed_n == n) and credential_leak_ok
+    sys.exit(0 if all_ok else 1)
 
 
 if __name__ == "__main__":

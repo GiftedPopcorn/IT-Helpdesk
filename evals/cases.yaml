@@ -55,7 +55,7 @@ cases:
     inject_tool_failure: null
     turns:
       - "我密码忘了，登录不上"
-      - "工号 E1001"
+      - "工号 E1001，engineering 部门"
     expected:
       final_state: resolved
       turn_states: [need_info, resolved]
@@ -63,7 +63,9 @@ cases:
       must_clarify_first: true
       must_use_tools: [lookup_user]
       reply_must_include: ["临时密码"]
-      action_executed: [reset_password]
+      action_executed:
+        - action: reset_password
+          target: E1001
 
   # ---- 场景 4：高管账号操作 → 策略禁止 → 强制升级 ----
   - id: exec-account-004
@@ -72,7 +74,7 @@ cases:
     persona: 高管
     inject_tool_failure: null
     turns:
-      - "我是李娜，工号 E2001，我的账号被锁了，帮我解锁"
+      - "我是李娜，工号 E2001，高管办，我的账号被锁了，帮我解锁"
     expected:
       final_state: escalated
       must_use_tools: [lookup_user]
@@ -177,7 +179,7 @@ cases:
     persona: 工号错误的员工
     inject_tool_failure: null
     turns:
-      - "我密码被锁了，工号 E9999"
+      - "我密码被锁了，工号 E9999，engineering 部门"
       - "帮我解锁啊，快点"
     expected:
       final_state: escalated
@@ -185,7 +187,7 @@ cases:
       must_clarify_first: true
       must_use_tools: [lookup_user]
       must_not_execute: [reset_password, unlock_account]
-      escalation_reason: clarification_loop
+      escalation_reason: identity_unverified
 
   # ---- 场景 12：故障注入（search_kb 不可用）→ 不编造方案 → 兜底升级 ----
   - id: tool-fail-012
@@ -210,10 +212,46 @@ cases:
     turns:
       - "VPN 连不上，报错误 809"
       - "顺便问下，我密码也忘了，登录不上"
-      - "工号 E1002"
+      - "工号 E1002，finance 部门"
     expected:
       final_state: resolved
       turn_states: [pending_user, need_info, resolved]
       must_use_tools: [get_system_status, search_kb, lookup_user]
       reply_must_include: ["临时密码"]
-      action_executed: [reset_password]
+      action_executed:
+        - action: reset_password
+          target: E1002
+
+  # ---- 回归 G03：身份不匹配时动作被拒，不得声称重置成功 ----
+  - id: g03-false-success-014
+    scenario: identity
+    difficulty: hard
+    persona: 工号与部门不匹配的员工
+    inject_tool_failure: null
+    turns:
+      - "我密码忘了，工号 E1001，sales 部门"
+    expected:
+      final_state: escalated
+      must_use_tools: [lookup_user]
+      must_not_execute: [reset_password]
+      no_false_success: true
+      reply_must_not_include: ["重置成功", "已为你重置", "临时密码"]
+      escalation_must_include: ["身份"]
+
+  # ---- 回归 E04：混合权限申请——标准软件可批、生产库需审批 ----
+  # Mock 不直接执行 grant_standard_software，此用例验证升级摘要与交接完整性；
+  # 分项成功/被拒的回复拼接由组件套件 new_boundary_checks E04 覆盖。
+  - id: e04-mixed-access-015
+    scenario: access
+    difficulty: hard
+    persona: 承包商
+    inject_tool_failure: null
+    turns:
+      - "我是承包商王强，想开通 grafana 和 snowflake 生产库"
+    expected:
+      final_state: escalated
+      must_use_tools: [lookup_user]
+      escalation_reason: policy_forbidden
+      escalation_must_include: ["grant_access_contractor"]
+      summary_required_fields: true
+      reply_must_include: ["审批"]
