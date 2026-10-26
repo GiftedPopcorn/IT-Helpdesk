@@ -47,9 +47,17 @@ _DEPARTMENT_ALIASES = {
 def _extract_department(text: str) -> str:
     """从文本中提取部门声明，返回目录标准部门名（小写英文）；找不到返回空串。
 
-    处理否定语境：若部门名出现在"不是X"/"并非X"/"非X"/"not X"/"no X"
-    等否定结构中，或"X不是"结构中，则该部门不计入，只取肯定声明的部门。
-    例如"我的部门是sales，不是engineering"应返回 sales，而非 engineering。
+    处理规则：
+    1. 否定语境：若部门名出现在"不是X"/"并非X"/"非X"/"not X"/"no X"
+       等否定结构中，或"X不是"结构中，则该部门不计入，只取肯定声明的部门。
+       例如"我的部门是sales，不是engineering"应返回 sales，而非 engineering。
+    2. 同事/他人部门排除：若部门名出现在描述同事、他人的子句中
+       （含"同事"、"他/她"、"别人"、"朋友"、"同学"等指代词），
+       则该子句中的部门不计入（D01：同事的部门不能当作本人部门）。
+       只统计"我"相关子句中出现的部门。
+    3. 职位/团队名排除："data engineering"、"software engineering" 等
+       是职位或团队名，不应把其中的 "data"/"engineering" 拆成两个部门
+       （E04：避免 "Data Engineering" 触发多部门歧义）。
     """
     if not text:
         return ""
@@ -62,8 +70,17 @@ def _extract_department(text: str) -> str:
             all_aliases.append((canonical, alias))
     all_aliases.sort(key=lambda x: len(x[1]), reverse=True)
 
-    # 第一步：移除"否定词 + 部门名"结构（不是X / 并非X / 非X / not X / no X / non-X）
+    # 第零步：移除职位/团队复合词（data engineering / software engineering 等），
+    # 避免其中嵌入的部门别名被误拆为多个部门声明。
+    job_title_phrases = [
+        "data engineering", "software engineering", "data science",
+        "machine learning", "ml engineer", "data engineer",
+    ]
     cleaned = text
+    for phrase in job_title_phrases:
+        cleaned = _re.sub(_re.escape(phrase), "", cleaned, flags=_re.IGNORECASE)
+
+    # 第一步：移除"否定词 + 部门名"结构（不是X / 并非X / 非X / not X / no X / non-X）
     for _canonical, alias in all_aliases:
         pattern = _re.compile(
             r"(?:不是|并非|非|not\s+|no\s+|non-)\s*" + _re.escape(alias),
@@ -78,15 +95,35 @@ def _extract_department(text: str) -> str:
         )
         cleaned = pattern.sub("", cleaned)
 
+    # 第三步：按标点切分子句，只统计"我"相关子句中的部门，
+    # 排除描述同事/他人的子句（D01：同事的部门不能当作本人部门）。
+    colleague_markers = [
+        "同事", "他的", "她的", "别人", "其他人", "朋友", "同学",
+        "他在", "她在", "他是", "她是", "他的部门", "她的部门",
+        "his", "her", "colleague", "coworker",
+    ]
+    # 切分标点：中英文逗号、分号、句号、感叹号、问号
+    clauses = _re.split(r"[，,;；。.!！?？、]", cleaned)
+    relevant_clauses = []
+    for clause in clauses:
+        c = clause.strip()
+        if not c:
+            continue
+        # 若子句提到同事/他人，则跳过（不计入本人部门）
+        if any(m in c for m in colleague_markers):
+            continue
+        relevant_clauses.append(c)
+    relevant_text = " ".join(relevant_clauses)
+
     # 从清理后的文本中收集所有出现的部门（去重）
-    lower = cleaned.lower()
+    lower = relevant_text.lower()
     found = set()
     for canonical, aliases in _DEPARTMENT_ALIASES.items():
         for alias in aliases:
             if alias.lower() in lower:
                 found.add(canonical)
                 break
-    # 多候选 → 歧义，不核验（C03：同事的部门不能当作本人部门）
+    # 多候选 → 歧义，不核验
     if len(found) > 1:
         return ""
     return found.pop() if found else ""
@@ -152,6 +189,12 @@ class AgentLoop:
             old_issue = state.issue
             state.resolved = False
             state.issue = IssueContext()  # 新问题卡，保留 state.user（已核验身份）
+            # S02：身份核验是会话级而非问题卡级 —— 同一用户的不同问题共用已核验身份，
+            # 不能因为新建问题卡就把 verified_identity 置回 False，否则上一问题已成功
+            # 执行的敏感动作（如 reset_password）会在本轮被 outcome 规则 1 重新判定为
+            # policy_forbidden，导致 VPN 等后续问题被错误升级。
+            state.issue.verified_identity = old_issue.verified_identity
+            state.issue.user_id = old_issue.user_id
             # S02：继承上一问题卡中未解决的症状和疑点，避免 VPN 等并行问题状态丢失
             state.issue.symptoms = list(old_issue.symptoms)
             state.issue.unresolved_questions = [
@@ -297,6 +340,9 @@ class AgentLoop:
            否定声明（"不是 engineering"）不计入匹配（B02）。
         3. 多候选不核验：lookup_user 返回多条命中时无法确定目标，不核验。
         4. 歧义不核验：用户未明确声明工号或部门时不核验，继续澄清。
+        5. 跨轮累积（D02）：用户可能分两轮提供工号和部门。将本轮声明与
+           state.last_claimed_eid/dept 合并后再核验，避免第 2 轮只补部门时
+           因本轮消息里没有工号而核验失败。
 
         安全约束：部门声明只信用户消息，绝不读取 issue.expected_department（LLM 可写）。
         核验过程记录到 state.identity_claim，便于追溯依据。
@@ -307,8 +353,17 @@ class AgentLoop:
         if not u:
             return
         user_msg = self._latest_user_message(state)
-        claimed_eid = _extract_employee_id(user_msg)
-        claimed_dept = _extract_department(user_msg)
+        cur_eid = _extract_employee_id(user_msg)
+        cur_dept = _extract_department(user_msg)
+
+        # 跨轮累积：本轮提供了哪个字段就更新哪个；未提供的字段沿用历史声明
+        if cur_eid:
+            state.last_claimed_eid = cur_eid
+        if cur_dept:
+            state.last_claimed_dept = cur_dept
+        claimed_eid = state.last_claimed_eid
+        claimed_dept = state.last_claimed_dept
+
         dir_eid = (u.get("employee_id") or "").strip()
         dir_dept = (u.get("department") or "").strip().lower()
 
@@ -348,6 +403,9 @@ class AgentLoop:
         永久 active，触发 outcome 规则 0 反复改写 need_info。此处作为安全网：
         若用户消息提到了冲突中的关键实体（如 SH-01/HZ-01）且包含确认/澄清用语，
         则认为该冲突已被用户直接观察消解。
+
+        D04：疑问句不算观察 —— "现在能否帮我确认连的是SH-01还是HZ-01？"
+        只是在请求确认，并未给出实际观察结果，不能据此消解冲突。
         """
         import re as _re
         if not user_message or not state.issue.conflicts:
@@ -363,6 +421,12 @@ class AgentLoop:
         ]
         has_uncertainty = any(w in msg_lower for w in uncertainty_words)
         if has_uncertainty:
+            return
+        # D04：疑问句不算直接观察 —— "能否...确认"、"是否"、"吗"、"？"
+        # 等句式表示用户在提问/请求确认，而非陈述观察结果。
+        question_markers = ["能否", "是否", "吗", "么", "?", "？", "请帮我确认", "帮我确认"]
+        is_question = any(m in user_message for m in question_markers)
+        if is_question:
             return
         # 确认/澄清用语：用户给出了直接观察而非继续提问
         resolution_words = [
@@ -707,12 +771,36 @@ class AgentLoop:
 
         # 全部成功：依据真实结果重新生成回复（禁止仅追加密码）
         if ok_results:
-            reply = self._build_reply_from_results(ok_results)
-            if reply:
-                final = dict(final)
-                final["user_message"] = reply
-                final["state"] = "resolved"
-                final["confidence"] = 0.9
+            # D06：LLM 已显式置 state=escalated（如部分权限需审批）时，
+            # 不能覆盖回 resolved，也不重写 user_message —— LLM 已在回复中
+            # 同时说明了成功项与待审批项，必须保留这份混合交接信息。
+            if final.get("state") != "escalated":
+                reply = self._build_reply_from_results(ok_results)
+                if reply:
+                    final = dict(final)
+                    final["user_message"] = reply
+                    final["state"] = "resolved"
+                    final["confidence"] = 0.9
+
+        # D05：声明凭证类动作成功但本轮无任何成功执行记录 → 虚假成功，强制升级。
+        # LLM 可能在 actions_taken 为空时直接声称"密码已重置"，必须拦截。
+        if final.get("state") == "resolved" and not executed_ok:
+            reply_text = (final.get("user_message") or "")
+            credential_claim_keywords = [
+                "密码已重置", "已重置密码", "已为你重置", "临时密码",
+                "账号已解锁", "已解锁", "已为你解锁", "已授予", "权限已开通",
+            ]
+            claims_credential_success = any(kw in reply_text for kw in credential_claim_keywords)
+            if claims_credential_success:
+                esc = dict(final)
+                esc["state"] = "escalated"
+                esc["escalation"] = dict(esc.get("escalation") or {})
+                esc["escalation"]["reason"] = "action_failed"
+                esc["user_message"] = (
+                    "抱歉，刚才的操作未能实际执行成功，我已经把情况转给人工 IT 支持，"
+                    "他们会尽快为你处理。"
+                )
+                return self.outcome.complete_summary(esc, state, force_reason="action_failed")
         return final
 
     def _build_turn_result(

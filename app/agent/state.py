@@ -213,6 +213,10 @@ class SessionState:
     # 身份声明记录：保存用户消息中声明的工号/部门、目录记录的对应字段、以及核验结果，
     # 便于追溯核验依据，避免在多处叠加关键词补丁。
     identity_claim: Optional[Dict[str, Any]] = None
+    # 跨轮次身份声明累积：用户可能在第 1 轮只报工号、第 2 轮才报部门。
+    # 记录最近一次用户消息中声明的工号/部门，与本轮声明合并后再核验（D02）。
+    last_claimed_eid: str = ""
+    last_claimed_dept: str = ""
     clarified_gaps: List[str] = field(default_factory=list)  # 已追问过的信息缺口
     turn_count: int = 0
     consecutive_need_info: int = 0
@@ -247,10 +251,13 @@ class SessionState:
 
         场景：已核验 E1001 后，用户又让查 E1002 的目录 —— lookup_user 命中 E1002，
         此时必须丢弃 E1001 的核验状态，不能把 E1001 的认证转移给 E1002。
+        同时清空跨轮累积的身份声明，避免旧工号/部门残留干扰新主体核验。
         """
         self.verified_user = None
         self.issue.verified_identity = False
         self.identity_claim = None
+        self.last_claimed_eid = ""
+        self.last_claimed_dept = ""
 
     @property
     def verified_subject(self) -> Optional[Dict[str, Any]]:
@@ -343,10 +350,17 @@ class SessionState:
                 self._upsert_hypothesis(h)
 
     def _upsert_hypothesis(self, h: Dict[str, Any]) -> None:
+        # D03：evidence 可能不是列表（LLM 误填为 int/str 等），必须先归一化，
+        # 否则 for ev in evidence 会抛 TypeError 导致整轮崩溃。
+        ev_raw = h.get("evidence", [])
+        if isinstance(ev_raw, list):
+            ev_list = [e for e in ev_raw if isinstance(e, str)]
+        else:
+            ev_list = []
         for existing in self.hypotheses:
             if existing.text == h["text"]:
                 existing.status = h.get("status", existing.status)
-                for ev in h.get("evidence", []):
+                for ev in ev_list:
                     if ev not in existing.evidence:
                         existing.evidence.append(ev)
                 return
@@ -354,7 +368,7 @@ class SessionState:
             Hypothesis(
                 text=h["text"],
                 status=h.get("status", "testing"),
-                evidence=[e for e in h.get("evidence", []) if isinstance(e, str)],
+                evidence=ev_list,
             )
         )
 

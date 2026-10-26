@@ -404,7 +404,7 @@ def normalize_final(final: Any) -> Optional[Dict[str, Any]]:
             v = iu.get(list_key)
             if v is not None and not isinstance(v, list):
                 iu[list_key] = []
-        # hypotheses：每项必须是 dict，status 必须合法
+        # hypotheses：每项必须是 dict，status 必须合法，evidence 必须是字符串列表
         hyps = iu.get("hypotheses")
         if isinstance(hyps, list):
             valid_status = {"testing", "confirmed", "rejected", "conflicted"}
@@ -415,6 +415,13 @@ def normalize_final(final: Any) -> Optional[Dict[str, Any]]:
                 h = dict(h)
                 if h.get("status") not in valid_status:
                     h["status"] = "testing"
+                # D03：evidence 非列表或含非字符串项 → 归一化为字符串列表，
+                # 防止 state._upsert_hypothesis 遍历时 TypeError 崩溃。
+                ev = h.get("evidence", [])
+                if isinstance(ev, list):
+                    h["evidence"] = [e for e in ev if isinstance(e, str)]
+                else:
+                    h["evidence"] = []
                 cleaned_hyps.append(h)
             iu["hypotheses"] = cleaned_hyps
         elif hyps is not None:
