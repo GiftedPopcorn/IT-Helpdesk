@@ -78,13 +78,18 @@ def _extract_department(text: str) -> str:
         )
         cleaned = pattern.sub("", cleaned)
 
-    # 从清理后的文本中提取第一个出现的部门别名（肯定声明）
+    # 从清理后的文本中收集所有出现的部门（去重）
     lower = cleaned.lower()
+    found = set()
     for canonical, aliases in _DEPARTMENT_ALIASES.items():
         for alias in aliases:
             if alias.lower() in lower:
-                return canonical
-    return ""
+                found.add(canonical)
+                break
+    # 多候选 → 歧义，不核验（C03：同事的部门不能当作本人部门）
+    if len(found) > 1:
+        return ""
+    return found.pop() if found else ""
 
 
 def _extract_employee_id(text: str) -> str:
@@ -343,6 +348,17 @@ class AgentLoop:
         if not user_message or not state.issue.conflicts:
             return
         msg_lower = user_message.lower()
+        # 不确定性表述：用户尚未给出确定观察，不能据此消解冲突
+        # 例如"现在仍无法确认"、"还不确定连的是哪个"——必须保持未裁决
+        uncertainty_words = [
+            "无法确认", "不确定", "不清楚", "不知道", "还没", "尚未",
+            "可能", "也许", "大概", "似乎", "好像", "待确认", "需确认",
+            "cannot confirm", "not sure", "not certain", "unclear",
+            "don't know", "still checking",
+        ]
+        has_uncertainty = any(w in msg_lower for w in uncertainty_words)
+        if has_uncertainty:
+            return
         # 确认/澄清用语：用户给出了直接观察而非继续提问
         resolution_words = [
             "实际", "现在", "当前", "确认", "选中", "连的是", "连接的是",

@@ -61,17 +61,18 @@ class OutcomeEngine:
 
         # 规则 0：证据冲突护栏 —— resolved/pending_user 不允许带未解决的证据冲突，
         # 否则强制改为 need_info 让用户澄清冲突，避免把矛盾包装成确定答案
-        if state_name in ("resolved", "pending_user") and state.issue.conflicts:
+        active_conflicts = state.issue.active_conflicts
+        if state_name in ("resolved", "pending_user") and active_conflicts:
             rewritten = dict(final)
             rewritten["state"] = "need_info"
             rewritten["confidence"] = min(conf, 0.5)
             rewritten["user_message"] = (
                 "我查到的信息之间有矛盾，需要再确认一下："
-                + "；".join(state.issue.conflicts[:2])
+                + "；".join(active_conflicts[:2])
                 + "。请告诉我哪个更符合你实际看到的情况？"
             )
             return Verdict("rewrite", rewritten, reason="conflict_guard",
-                           notes=[f"未解决冲突: {state.issue.conflicts}"])
+                           notes=[f"未解决冲突: {active_conflicts}"])
 
         # 规则 1：硬边界 —— 决议中的动作被 policy 禁止 → 无视 confidence 强制升级
         for act in final.get("actions_taken", []) or []:
@@ -83,7 +84,7 @@ class OutcomeEngine:
                 continue
             # 动作还没真正执行成功过（execute_action 返回 ok）的才拦截已执行声明：
             # 这里只拦"声明已做但策略不允许"的情况，实际执行拦截在 execute_action 里
-            user = state.user or {}
+            user = state.verified_subject or {}
             allowed, clause = self.policy.allowed(
                 action_name, user, state.issue.verified_identity
             )
@@ -93,6 +94,28 @@ class OutcomeEngine:
                     note=f"动作 {action_name} 被策略禁止（{clause}），已强制升级",
                     forbidden_action=action_name,
                 )
+
+        # 规则 1.5：查无此人的身份核验失败处理 —— 用户明确提供了工号但 lookup_user
+        # 返回 0 命中，说明工号不存在。第一次发生时让用户重新确认工号（need_info），
+        # 若用户仍无法提供有效工号（identity_ask_count >= 1）则强制升级。
+        # 此规则不依赖 LLM 输出的 state，避免 LLM 倾向追问时绕过身份核验失败的升级路径。
+        if state.identity_lookup_no_match and not state.issue.verified_identity:
+            if state.identity_ask_count >= 1:
+                return self._escalate(
+                    final, state, reason="identity_unverified",
+                    note="员工目录查无此人且用户无法提供有效工号，身份核验失败，转人工处理",
+                )
+            # 第一次查无此人：让用户重新确认工号，不立即升级
+            state.identity_ask_count += 1
+            rewritten = dict(final)
+            rewritten["state"] = "need_info"
+            rewritten["confidence"] = min(conf, 0.5)
+            rewritten["user_message"] = (
+                "员工目录里没有找到你提供的工号，请确认工号是否输入正确（格式如 E1001），"
+                "或提供你的注册邮箱以便核实。"
+            )
+            return Verdict("rewrite", rewritten, reason="identity_lookup_failed",
+                           notes=["工号查无此人，要求用户重新确认"])
 
         # 规则 2：身份门槛 —— resolved/pending_user 携带账号类动作但身份未核验
         if state_name in ("resolved", "pending_user") and self._needs_identity(final):
@@ -140,7 +163,21 @@ class OutcomeEngine:
 
         # 规则 5：升级摘要补全
         if state_name == "escalated":
+            # 查无此人（用户提供的工号在目录中 0 命中）→ 身份核验失败是更准确的升级原因。
+            # identity_lookup_no_match 仅在用户明确提供工号且查无此人时置位，
+            # 因此可以安全地覆盖任何泛化原因。
+            if state.identity_lookup_no_match:
+                esc = dict(final.get("escalation") or {})
+                esc["reason"] = "identity_unverified"
+                final = dict(final)
+                final["escalation"] = esc
             final = self.complete_summary(final, state)
+            # 同步话术：state=escalated 时回复统一为"已转人工"，不保留 LLM 可能的追问
+            final["user_message"] = (
+                final.get("user_message", "")
+                if "人工" in (final.get("user_message") or "")
+                else "这个问题超出了我能自动处理的范围，我已经把完整的调查记录转给人工 IT 支持。"
+            )
 
         return Verdict("pass", final)
 
@@ -150,6 +187,10 @@ class OutcomeEngine:
         self, final: Dict[str, Any], state: SessionState, reason: str, note: str,
         forbidden_action: str = "",
     ) -> Verdict:
+        # 查无此人（用户提供的工号 0 命中）→ 身份核验失败是更准确的升级原因
+        if state.identity_lookup_no_match:
+            reason = "identity_unverified"
+            note = "员工目录查无此人，身份核验失败，转人工处理"
         escalated = dict(final)
         escalated["state"] = "escalated"
         esc = dict(escalated.get("escalation") or {})
@@ -158,8 +199,11 @@ class OutcomeEngine:
             esc["forbidden_action"] = forbidden_action
         escalated["escalation"] = esc
         escalated = self.complete_summary(escalated, state, force_reason=reason)
-        escalated["user_message"] = escalated.get("user_message") or (
-            "这个问题超出了我能自动处理的范围，我已经把完整的调查记录转给人工支持。"
+        # 升级话术必须与状态一致：不保留 LLM 原回复中可能含有的追问/指令，
+        # 统一用"已转人工"口径，避免 state=escalated 但回复仍要求用户回答（C04）
+        escalated["user_message"] = (
+            "这个问题超出了我能自动处理的范围，我已经把完整的调查记录转给人工 IT 支持，"
+            "他们会尽快联系你。"
         )
         return Verdict("escalate", escalated, reason=reason, notes=[note])
 
@@ -174,7 +218,7 @@ class OutcomeEngine:
         保证"带完整上下文交接"这一硬性要求 100% 达标。
         """
         issue = state.issue
-        u = state.user or {}
+        u = state.verified_subject or {}
         esc = dict(final.get("escalation") or {})
         reason = force_reason or esc.get("reason") or "unspecified"
         if reason not in VALID_REASONS:
@@ -201,13 +245,16 @@ class OutcomeEngine:
                     names.append(a)
             elif r.name == "check_policy" and r.status == "ok" and r.summary:
                 names.extend(re.findall(r"([a-z_]+)=禁止", r.summary))
-        # 兜底：已核验用户为 contractor 时，权限类申请必然命中审批条款
+        # 兜底：目录显示用户为 contractor 时，权限类申请必然命中审批条款。
+        # 这里用 verified_subject or state.user：已核验取可信主体，未核验但已查过目录时
+        # 仍能从目录结果识别 contractor 角色，确保升级工单点名 contractor 审批条款。
         # （LLM 可能先查策略后核验身份，导致 check_policy 时角色感知未生效；
         #   问题卡 category 由 apply_final 在 review 之后合并，此处读 update 里的 category）
         issue_category = (
             (final.get("issue_update") or {}).get("category") or issue.category
         )
-        if (state.user or {}).get("role") == "contractor" and issue_category == "access":
+        contractor_role = (state.verified_subject or state.user or {}).get("role", "")
+        if contractor_role == "contractor" and issue_category == "access":
             names.append("grant_access_contractor")
         names = list(dict.fromkeys(n for n in names if n))
         trigger_line = f"\n- 触发动作: {', '.join(names)}" if names else ""
@@ -221,11 +268,11 @@ class OutcomeEngine:
             f"- 症状: {', '.join(issue.symptoms) or '无'}\n"
             f"- 已确认假设: {'; '.join(confirmed) or '无'}\n"
             f"- 已排除假设: {'; '.join(rejected) or '无'}\n"
-            f"- 证据冲突: {'; '.join(issue.conflicts) or '无'}\n"
+            f"- 证据冲突: {'; '.join(issue.active_conflicts) or '无'}\n"
             f"- 已尝试方案: {'; '.join(attempted) or '无'}\n"
             f"- 关键证据: {'; '.join(evidence) or '无'}\n"
             f"- 升级原因: {reason}{trigger_line}\n"
-            f"- 未解决疑点: {'; '.join(issue.unresolved_questions) or '无'}\n"
+            f"- 未解决疑点: {'; '.join(q.text for q in issue.unresolved_questions) or '无'}\n"
             f"- 建议处理: {suggestion or '见对话记录'}"
         )
         esc["summary"] = summary
@@ -288,3 +335,95 @@ def _extract_suggestion(user_message: str) -> str:
         return ""
     line = user_message.strip().split("\n")[0]
     return line[:80]
+
+
+def normalize_final(final: Any) -> Optional[Dict[str, Any]]:
+    """对 LLM 最终输出做契约级类型校验与归一化。
+
+    F05.2：合法 JSON 但字段类型错误（confidence='abc'、evidence=42、
+    actions_taken='x'、issue_update=None）必须安全降级而非崩溃。
+
+    归一化策略（state 合法时静默修复类型，不触发重试）：
+    - confidence 非数值 → 兜底 0.5；超出 [0,1] 范围 → 钳制
+    - user_message 非字符串/空 → 兜底为默认追问话术
+    - evidence 非字符串列表 → 过滤为字符串列表（非列表置空）
+    - actions_taken 非 dict 列表 → 过滤为 dict 列表；每项 params 非 dict 且非 None → 丢弃该动作
+    - issue_update 非 dict → 置空 dict；内部列表字段非列表 → 置空
+    - issue_update.hypotheses 每项 status 非法 → 修正为 testing
+    - escalation 非 dict（且存在）→ 置空 dict
+
+    返回归一化后的 dict；若 state 字段非法（非字符串或不在 VALID_STATES）
+    则返回 None，交由调用方走"有界重试 → fallback_final"路径。
+    """
+    if not isinstance(final, dict):
+        return None
+    state_name = final.get("state")
+    if not isinstance(state_name, str) or state_name not in VALID_STATES:
+        return None
+
+    out = dict(final)
+    # confidence：数值兜底 + 范围钳制 [0, 1]
+    conf = final.get("confidence", 0.5)
+    try:
+        conf = float(conf) if conf is not None else 0.5
+    except (TypeError, ValueError):
+        conf = 0.5
+    out["confidence"] = max(0.0, min(1.0, conf))
+    # user_message：字符串兜底；空串给默认追问话术，保证"可继续求助"
+    um = final.get("user_message", "")
+    if not isinstance(um, str):
+        um = str(um) if um else ""
+    out["user_message"] = um or "我需要再确认一下你的情况，能详细描述一下吗？"
+    # evidence：必须是字符串列表
+    ev = final.get("evidence", [])
+    out["evidence"] = (
+        [e for e in ev if isinstance(e, str)] if isinstance(ev, list) else []
+    )
+    # actions_taken：必须是 dict 列表，每项的 params 必须是 dict
+    # 若 params 非 dict 且非 None（如字符串/数字），视为非法参数，丢弃该动作，
+    # 避免 normalize 后 params={} 导致动作被错误执行（C01：非法参数不触发动作）
+    at = final.get("actions_taken", [])
+    if isinstance(at, list):
+        cleaned_actions = []
+        for a in at:
+            if not isinstance(a, dict):
+                continue
+            params = a.get("params")
+            if params is not None and not isinstance(params, dict):
+                continue  # 非法参数类型 → 丢弃该动作，不触发执行
+            cleaned_actions.append(a)
+        out["actions_taken"] = cleaned_actions
+    else:
+        out["actions_taken"] = []
+    # issue_update：必须是 dict，内部列表字段必须是列表
+    iu = final.get("issue_update", {})
+    if isinstance(iu, dict):
+        iu = dict(iu)
+        for list_key in ("symptoms", "attempted", "unresolved_questions",
+                         "conflicts", "resolved_conflicts", "answered_questions"):
+            v = iu.get(list_key)
+            if v is not None and not isinstance(v, list):
+                iu[list_key] = []
+        # hypotheses：每项必须是 dict，status 必须合法
+        hyps = iu.get("hypotheses")
+        if isinstance(hyps, list):
+            valid_status = {"testing", "confirmed", "rejected", "conflicted"}
+            cleaned_hyps = []
+            for h in hyps:
+                if not isinstance(h, dict):
+                    continue
+                h = dict(h)
+                if h.get("status") not in valid_status:
+                    h["status"] = "testing"
+                cleaned_hyps.append(h)
+            iu["hypotheses"] = cleaned_hyps
+        elif hyps is not None:
+            iu["hypotheses"] = []
+        out["issue_update"] = iu
+    else:
+        out["issue_update"] = {}
+    # escalation：若存在必须是 dict
+    esc = final.get("escalation")
+    if esc is not None and not isinstance(esc, dict):
+        out["escalation"] = {}
+    return out
