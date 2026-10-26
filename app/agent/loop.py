@@ -160,6 +160,9 @@ class AgentLoop:
             state.issue.conflicts = [c for c in old_issue.conflicts if c.status == "active"]
             state.hypotheses = []
             state.consecutive_need_info = 0
+            # 新问题重置类别追踪；未解决症状会随新问题卡重新归类
+            state.resolved_categories = set()
+            state.seen_categories = set()
         if state.escalated:
             # 升级后仍允许补充信息：记录到工单并回复确认，不进入诊断循环
             state.append_message("user", user_message)
@@ -232,8 +235,10 @@ class AgentLoop:
         if final is None:  # 步数耗尽 → 强制升级（摘要由状态卡合成，不依赖 LLM）
             final = force_escalation_final(state, "max_steps_exceeded")
 
-        # 先合并本轮描述性事实，再做身份核验（部门只取用户消息），最后对账执行动作。
+        # 先合并本轮描述性事实与假设，再做身份核验、动作对账和升级摘要。
+        # 摘要必须基于本轮最新事实/假设生成，不能用上一轮的过时根因（Commit 4）。
         state.issue.merge(final.get("issue_update", {}))
+        state._merge_hypotheses(final.get("issue_update", {}) or {})
         # F04：用户直接观察消解已知冲突时自动标记 resolved，
         # 避免 LLM 忘记在 issue_update.resolved_conflicts 中声明而导致冲突永久 active。
         self._auto_resolve_conflicts(state, self._latest_user_message(state))

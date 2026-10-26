@@ -222,6 +222,11 @@ class SessionState:
     last_clarify_turn: int = -99  # 最近一次"改写为追问"发生的轮次（检测"无新证据"用）
     escalated: bool = False
     resolved: bool = False
+    # 多问题状态分离：按 category 分别追踪已解决/已见问题类别。
+    # 只有所有已见类别都已解决，才标记整场会话 resolved —— 避免密码问题解决后
+    # 把仍未解决的 VPN 问题一起关闭（S02）。
+    resolved_categories: set = field(default_factory=set)
+    seen_categories: set = field(default_factory=set)
     escalation_ticket: Optional[Dict[str, Any]] = None
     total_usage: Dict[str, int] = field(default_factory=lambda: {"prompt": 0, "completion": 0})
 
@@ -314,16 +319,23 @@ class SessionState:
         self._apply_state_flags(final)
 
     def apply_final_state_flags(self, final: Dict[str, Any]) -> None:
-        """只设状态标志与假设（issue 已在对账前合并，不重复 merge）。"""
-        self._merge_hypotheses(final.get("issue_update", {}) or {})
+        """只设状态标志（issue 与 hypotheses 已在对账前合并，不重复 merge）。"""
         self._apply_state_flags(final)
 
     def _apply_state_flags(self, final: Dict[str, Any]) -> None:
         state = final.get("state")
+        # 多问题状态分离：按 category 追踪，而非整场会话一刀切。
+        # 密码 resolved 不影响 VPN 的未决状态（S02）。
+        cat = self.issue.category or "unknown"
+        self.seen_categories.add(cat)
         if state == "escalated":
             self.escalated = True
         elif state == "resolved":
-            self.resolved = True
+            self.resolved_categories.add(cat)
+            # 只有所有已见类别都已解决，才标记整场会话 resolved
+            self.resolved = bool(self.seen_categories) and self.seen_categories.issubset(
+                self.resolved_categories
+            )
 
     def _merge_hypotheses(self, issue_update: Dict[str, Any]) -> None:
         for h in issue_update.get("hypotheses", []) or []:
@@ -365,6 +377,8 @@ class SessionState:
             "verified_user": self.verified_user,
             "escalated": self.escalated,
             "resolved": self.resolved,
+            "resolved_categories": sorted(self.resolved_categories),
+            "seen_categories": sorted(self.seen_categories),
             "escalation_ticket": self.escalation_ticket,
             "total_usage": self.total_usage,
             "message_count": len(self.messages),
