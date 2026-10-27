@@ -1,0 +1,15 @@
+{
+  "secrets_found": [],
+  "upload_candidate_files_scanned": 361,
+  "documentation_links_checked": 19,
+  "http_health": {
+    "status": "ok",
+    "provider": "mock",
+    "model": "deepseek-chat"
+  },
+  "password_demo_mock_states": [
+    "need_info",
+    "resolved"
+  ],
+  "root_and_docs_http": 200
+}

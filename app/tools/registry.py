@@ -4,8 +4,8 @@
 LLM 看到错误后可以自己换参数重试、换工具、或转向升级。
 """
 import json
+import threading
 import traceback
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -81,26 +81,45 @@ class ToolRegistry:
                     "error": f"工具 {tc.name} 暂时不可用（评测注入的模拟故障）"}
 
         timeout = getattr(ctx.settings, "tool_timeout_seconds", 15)
-        try:
-            with ThreadPoolExecutor(max_workers=1) as pool:
-                fut = pool.submit(tool.run, ctx, **tc.arguments)
-                data = fut.result(timeout=timeout)
-        except FuturesTimeout:
-            return {"status": "error", "error_type": "timeout",
-                    "error": f"工具 {tc.name} 执行超时（>{timeout}s）"}
-        except TypeError as exc:
-            # 参数名/数量不对：附上 schema 提示，引导 LLM 自纠参数
-            hint = json.dumps(tool.parameters, ensure_ascii=False)
+        # 用 daemon 线程 + join(timeout) 实现真实有界超时：
+        # 超时后立即返回，不等待慢任务完成（ThreadPoolExecutor 的 with 退出会等线程结束，
+        # 导致配置 1s 超时实际墙钟仍等于慢任务耗时）。
+        result_box: Dict[str, Any] = {}
+
+        def _runner():
+            try:
+                result_box["data"] = tool.run(ctx, **tc.arguments)
+            except Exception as e:  # noqa: BLE001
+                result_box["exc"] = e
+
+        t = threading.Thread(target=_runner, daemon=True)
+        t.start()
+        t.join(timeout=timeout)
+        if t.is_alive():
+            # 超时：daemon 线程会随进程退出，但当前调用立即返回错误
+            is_write = tc.name == "execute_action"
             return {
                 "status": "error",
-                "error_type": "argument_error",
-                "error": f"参数错误: {exc}。期望的参数 schema: {hint}",
+                "error_type": "timeout",
+                "error": (
+                    f"工具 {tc.name} 执行超时（>{timeout}s）。"
+                    + ("写操作结果未知，请勿盲目重试，建议查询操作状态或转人工。" if is_write else "")
+                ),
             }
-        except Exception as exc:  # noqa: BLE001 —— 兜底所有异常，保证循环不断
+        if "exc" in result_box:
+            exc = result_box["exc"]
+            if isinstance(exc, TypeError):
+                hint = json.dumps(tool.parameters, ensure_ascii=False)
+                return {
+                    "status": "error",
+                    "error_type": "argument_error",
+                    "error": f"参数错误: {exc}。期望的参数 schema: {hint}",
+                }
             if getattr(ctx.settings, "debug", False):
                 traceback.print_exc()
             return {"status": "error", "error_type": "service_error",
                     "error": f"{type(exc).__name__}: {exc}"}
+        data = result_box.get("data")
 
         # 空结果：检索工具返回 0 条 → 显式 not_found
         if tc.name in self._EMPTY_RESULT_TOOLS and self._is_empty(data):

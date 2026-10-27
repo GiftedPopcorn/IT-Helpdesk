@@ -1,0 +1,68 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-chat",
+  "turns": [
+    {
+      "input": "VPN 老是掉线，烦死了",
+      "response": {
+        "session_id": "3c1ddc8a7cd4",
+        "reply": "VPN 频繁掉线确实很影响工作，我来帮你定位。目前系统状态显示 VPN 网关处于降级状态，上海办公室出口带宽拥塞，存在间歇性断连的已知故障（INC-1042）。为了确认是不是这个原因，麻烦你告诉我两点：\n1. 你在哪个办公地点（比如上海、杭州，还是在家远程）？\n2. 掉线时客户端有没有报具体错误码（比如 809）？ 另外补充一句：10 月 17 日有一次 GlobalProtect 客户端强制升级到 7.2.3 的变更（CHG-339），旧版本客户端会连不上并报 809，所以也请顺便确认下你的客户端版本",
+        "state": "need_info",
+        "confidence": 0.7,
+        "evidence": [
+          "system_status: vpn-gateway=degraded，INC-1042 上海办公室 VPN 间歇性断连（workaround: 切换 vpn-hz.acme.com）",
+          "system_status: CHG-339 GlobalProtect 强制升级至 7.2.3，旧版本报错误 809",
+          "kb: vpn-disconnect-windows.md"
+        ],
+        "tools_used": [
+          {
+            "name": "get_system_status",
+            "args": {},
+            "status": "ok",
+            "ms": 16
+          },
+          {
+            "name": "search_kb",
+            "args": {
+              "query": "VPN 掉线 间歇性断连"
+            },
+            "status": "ok",
+            "ms": 15
+          }
+        ],
+        "escalation": null,
+        "latency_ms": 6813,
+        "usage": {
+          "prompt": 19475,
+          "completion": 700
+        }
+      }
+    },
+    {
+      "input": "还是不行，我也说不清具体情况",
+      "response": {
+        "session_id": "3c1ddc8a7cd4",
+        "reply": "这个问题超出了我能自动处理的范围，我已经把完整的调查记录转给人工 IT 支持，他们会尽快联系你。",
+        "state": "escalated",
+        "confidence": 0.7,
+        "evidence": [
+          "system_status: INC-1042 上海办公室 VPN 间歇性断连，出口带宽拥塞中，workaround 切换至 vpn-hz.acme.com",
+          "system_status: CHG-339 GlobalProtect 强制升级至 7.2.3，旧版本报错误 809",
+          "kb: vpn-disconnect-windows.md"
+        ],
+        "tools_used": [],
+        "escalation": {
+          "reason": "clarification_loop",
+          "urgency": "medium",
+          "summary": "【升级工单】\n- 员工: 未知（未提供工号, ?/?）, 身份核验: 未完成\n- 问题描述: 用户反馈 VPN 频繁掉线，需确认办公地点、错误码与客户端版本以匹配已知故障\n- 症状: VPN 频繁掉线, 间歇性断连\n- 已确认假设: 无\n- 已排除假设: 无\n- 证据冲突: 无\n- 已尝试方案: 无\n- 关键证据: system_status: INC-1042 上海办公室 VPN 间歇性断连，出口带宽拥塞中，workaround 切换至 vpn-hz.acme.com; system_status: CHG-339 GlobalProtect 强制升级至 7.2.3，旧版本报错误 809; kb: vpn-disconnect-windows.md\n- 升级原因: clarification_loop\n- 未解决疑点: 用户在哪个办公地点/是否远程; 掉线时是否有具体错误码（如 809）; GlobalProtect 客户端版本是否为 7.2.3\n- 建议处理: 没关系，我们一步步来，你只要回答两个简单的问题就行：",
+          "ticket_id": "ESC-3C1D-002"
+        },
+        "latency_ms": 3375,
+        "usage": {
+          "prompt": 25074,
+          "completion": 1340
+        }
+      }
+    }
+  ]
+}

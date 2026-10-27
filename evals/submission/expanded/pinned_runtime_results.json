@@ -1,0 +1,165 @@
+[
+  {
+    "name": "selftest",
+    "returncode": 0
+  },
+  {
+    "name": "regression",
+    "returncode": 0
+  },
+  {
+    "api": {
+      "index": {
+        "status": 200,
+        "body": {
+          "has_chat": true
+        }
+      },
+      "health": {
+        "status": 200,
+        "body": {
+          "status": "ok",
+          "provider": "mock",
+          "model": "deepseek-chat"
+        }
+      },
+      "chat": {
+        "status": 200,
+        "body": {
+          "session_id": "b45a427ee2e7",
+          "reply": "查到了：VPN 网关近期有变更（CHG-339），客户端必须升级到 7.2.3 以上，旧版本连接会报错误 809。请升级 GlobalProtect 客户端后告诉我结果",
+          "state": "pending_user",
+          "confidence": 0.85,
+          "evidence": [
+            "system_status: CHG-339",
+            "kb: vpn-disconnect-windows.md"
+          ],
+          "tools_used": [
+            {
+              "name": "get_system_status",
+              "args": {
+                "service": "vpn-gateway"
+              },
+              "status": "ok",
+              "ms": 0
+            },
+            {
+              "name": "search_kb",
+              "args": {
+                "query": "vpn 809 客户端 升级"
+              },
+              "status": "ok",
+              "ms": 15
+            }
+          ],
+          "escalation": null,
+          "latency_ms": 93,
+          "usage": {
+            "prompt": 30,
+            "completion": 30
+          }
+        }
+      },
+      "session": {
+        "status": 200,
+        "body": {
+          "session_id": "b45a427ee2e7",
+          "created_at": "2026-10-27T11:29:05.261731",
+          "turn_count": 1,
+          "issue": {
+            "issue_id": "18ea73c8",
+            "category": "vpn",
+            "description": "VPN 连接报错误 809",
+            "goal": "",
+            "user_id": "",
+            "verified_identity": false,
+            "expected_department": "",
+            "affected_service": "vpn-gateway",
+            "symptoms": [
+              "error 809"
+            ],
+            "attempted": [],
+            "unresolved_questions": [],
+            "conflicts": [],
+            "status": "pending_user",
+            "completion_basis": ""
+          },
+          "issues": {
+            "18ea73c8": {
+              "issue_id": "18ea73c8",
+              "category": "vpn",
+              "description": "VPN 连接报错误 809",
+              "goal": "",
+              "user_id": "",
+              "verified_identity": false,
+              "expected_department": "",
+              "affected_service": "vpn-gateway",
+              "symptoms": [
+                "error 809"
+              ],
+              "attempted": [],
+              "unresolved_questions": [],
+              "conflicts": [],
+              "status": "pending_user",
+              "completion_basis": ""
+            }
+          },
+          "active_issue_id": "18ea73c8",
+          "hypotheses": [],
+          "tool_records": [
+            {
+              "turn": 1,
+              "name": "get_system_status",
+              "args": {
+                "service": "vpn-gateway"
+              },
+              "status": "ok",
+              "summary": "服务[vpn-gateway=degraded] 故障[INC-1042] 变更[CHG-339]",
+              "data": null
+            },
+            {
+              "turn": 1,
+              "name": "search_kb",
+              "args": {
+                "query": "vpn 809 客户端 升级"
+              },
+              "status": "ok",
+              "summary": "命中3篇: kb/vpn-disconnect-windows.md, kb/account-lockout.md, kb/vpn-mfa-token-expired.md",
+              "data": null
+            }
+          ],
+          "user": null,
+          "verified_user": null,
+          "identity_claim": null,
+          "last_claimed_eid": "",
+          "last_claimed_dept": "",
+          "last_claimed_eid_source": "",
+          "last_claimed_dept_source": "",
+          "last_claimed_eid_turn": 0,
+          "last_claimed_dept_turn": 0,
+          "department_claim": null,
+          "identity_epoch": 0,
+          "pending_identity_question": null,
+          "escalated": false,
+          "resolved": false,
+          "resolved_categories": [],
+          "seen_categories": [
+            "vpn"
+          ],
+          "escalation_ticket": null,
+          "total_usage": {
+            "prompt": 30,
+            "completion": 30
+          },
+          "message_count": 6
+        }
+      },
+      "reset": {
+        "status": 200,
+        "body": {
+          "reset": true
+        }
+      }
+    }
+  }
+]

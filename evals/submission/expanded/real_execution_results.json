@@ -1,0 +1,1034 @@
+[
+  {
+    "key": "C01.1_r1",
+    "states": [
+      "need_info",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C02.1_r1",
+    "states": [
+      "need_info",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C01.1_r3",
+    "states": [
+      "need_info",
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C01.1_r2",
+    "states": [
+      "need_info",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C03.1_r1",
+    "states": [
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C03.1_r2",
+    "states": [
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C03.1_r3",
+    "states": [
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C02.1_r2",
+    "states": [
+      "need_info",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C02.1_r3",
+    "states": [
+      "need_info",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C04.1_r3",
+    "states": [
+      "need_info",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C04.1_r2",
+    "states": [
+      "need_info",
+      "need_info",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M01.1_r1",
+    "states": [
+      "pending_user",
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C04.1_r1",
+    "states": [
+      "need_info",
+      "need_info",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M02.1_r1",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M01.1_r2",
+    "states": [
+      "pending_user",
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M01.1_r3",
+    "states": [
+      "pending_user",
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M02.1_r2",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M02.1_r3",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M03.1_r2",
+    "states": [
+      "pending_user",
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M03.1_r1",
+    "states": [
+      "pending_user",
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M03.1_r3",
+    "states": [
+      "pending_user",
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M04.1_r1",
+    "states": [
+      "need_info",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M04.1_r3",
+    "states": [
+      "need_info",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M04.1_r2",
+    "states": [
+      "need_info",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M05.1_r1",
+    "states": [
+      "need_info",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M05.1_r3",
+    "states": [
+      "need_info",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "M05.1_r2",
+    "states": [
+      "need_info",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S01.1_r1",
+    "states": [
+      "pending_user",
+      "pending_user",
+      "pending_user",
+      "pending_user",
+      "pending_user",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S01.1_r2",
+    "states": [
+      "pending_user",
+      "pending_user",
+      "pending_user",
+      "pending_user",
+      "pending_user",
+      "pending_user",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S02.1_r1",
+    "states": [
+      "need_info",
+      "pending_user",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S01.1_r3",
+    "states": [
+      "pending_user",
+      "pending_user",
+      "pending_user",
+      "pending_user",
+      "pending_user",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S03.1_r1",
+    "states": [
+      "pending_user",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S02.1_r2",
+    "states": [
+      "pending_user",
+      "pending_user",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S03.1_r2",
+    "states": [
+      "pending_user",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S03.1_r3",
+    "states": [
+      "pending_user",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E01.1_r1",
+    "states": [
+      "need_info",
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E01.1_r2",
+    "states": [
+      "need_info",
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S02.1_r3",
+    "states": [
+      "pending_user",
+      "pending_user",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E02.1_r1",
+    "states": [
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E02.1_r2",
+    "states": [
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E02.1_r3",
+    "states": [
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E01.1_r3",
+    "states": [
+      "need_info",
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E05.1_r1",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E05.1_r2",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E05.1_r3",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C05.1_r1",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C05.2_r1",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C05.1_r2",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C05.2_r2",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C05.1_r3",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "C05.2_r3",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T01.1_r1",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T01.1_r3",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T01.2_r1",
+    "states": [
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T01.1_r2",
+    "states": [
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T01.2_r2",
+    "states": [
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T01.2_r3",
+    "states": [
+      "resolved"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E03.1_r1",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E03.1_r2",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E03.2_r1",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E03.1_r3",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E03.2_r2",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E03.2_r3",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E03.3_r1",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E03.3_r2",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G01.1_r1",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E03.3_r3",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G01.1_r2",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G01.1_r3",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G01.2_r2",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G01.2_r1",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G01.2_r3",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G01.3_r1",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G01.3_r2",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G01.3_r3",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.1_r1",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.1_r2",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.1_r3",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.2_r1",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.2_r2",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.2_r3",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.3_r2",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.3_r1",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.4_r1",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.4_r3",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.3_r3",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G02.4_r2",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T03.1_r1",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T03.2_r1",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T03.1_r3",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T03.1_r2",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T03.2_r2",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "T03.2_r3",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S05.1_r1",
+    "states": [
+      "escalated",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S05.1_r2",
+    "states": [
+      "escalated",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S05.1_r3",
+    "states": [
+      "escalated",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S05.2_r1",
+    "states": [
+      "resolved",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S04.1_r1",
+    "states": [
+      "pending_user",
+      "need_info",
+      "resolved",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S05.2_r2",
+    "states": [
+      "resolved",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S04.1_r2",
+    "states": [
+      "pending_user",
+      "need_info",
+      "resolved",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S04.1_r3",
+    "states": [
+      "pending_user",
+      "need_info",
+      "resolved",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "S05.2_r3",
+    "states": [
+      "resolved",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E04.1_r1",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E04.1_r2",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "E04.1_r3",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F01.1_r1",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F01.1_r2",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F01.1_r3",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F01.2_r1",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F01.2_r2",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F03.2_r1",
+    "states": [
+      "pending_user",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F01.2_r3",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F03.2_r2",
+    "states": [
+      "pending_user",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F03.2_r3",
+    "states": [
+      "pending_user",
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G05.1_r1",
+    "states": [
+      "escalated"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F04.1_r2",
+    "states": [
+      "need_info",
+      "pending_user"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F04.1_r1",
+    "states": [
+      "need_info",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G05.1_r3",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "F04.1_r3",
+    "states": [
+      "need_info",
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  },
+  {
+    "key": "G05.1_r2",
+    "states": [
+      "need_info"
+    ],
+    "model_errors": [],
+    "product_exceptions": []
+  }
+]

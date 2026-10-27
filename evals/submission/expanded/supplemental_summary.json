@@ -1,0 +1,1546 @@
+[
+  {
+    "id": "A01_fabricated_department",
+    "expected": "No verification or action without a department actually supplied by the user",
+    "successful_actions": 0,
+    "identity_verified": false,
+    "passed": true,
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "A02_subject_switch",
+    "expected": "A lookup must not transfer E1001 authentication to E1002",
+    "successful_actions": 0,
+    "actual_targets": [],
+    "passed": true,
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "A03_resource_dedup",
+    "expected": "Claimed resources must match actual successful grants",
+    "granted_resources": [
+      "jira",
+      "grafana_readonly"
+    ],
+    "reply": "已为你授予 jira 权限，约 5 分钟后同步生效。已为你授予 grafana_readonly 权限，约 5 分钟后同步生效。",
+    "passed": true,
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "A04_action_transport_failure",
+    "expected": "Tool transport failure must prevent a success claim",
+    "successful_actions": 0,
+    "returned_state": "escalated",
+    "reply": "以下操作无法自动完成（工具 execute_action 暂时不可用（评测注入的模拟故障）），已转人工处理：reset_password",
+    "passed": true,
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "B01_employee_id_mismatch",
+    "expected": "The directory employee ID must match the user claim; a shared department is insufficient.",
+    "successful_actions": 0,
+    "actual_targets": [],
+    "identity_verified": false,
+    "passed": true,
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "B02_negated_department",
+    "expected": "A negated department name must not count as a matching department claim.",
+    "successful_actions": 0,
+    "actual_targets": [],
+    "identity_verified": false,
+    "passed": true,
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "C01_nested_action_params",
+    "expected": "Malformed nested params must not crash or execute an action.",
+    "passed": true,
+    "checks": {
+      "exception": null,
+      "successful_actions": 0
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "C02_unresolved_conflict",
+    "expected": "Explicit uncertainty must not resolve the gateway conflict.",
+    "passed": true,
+    "checks": {
+      "active_conflicts": [
+        "当前实际网关 SH-01/HZ-01 尚未确认"
+      ],
+      "returned_state": "need_info"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "C03_other_person_department",
+    "expected": "A department attributed to a colleague must not verify the claimant.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "identity_verified": false
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "D01_colleague_only_department",
+    "expected": "A colleague-only department claim must not authenticate the speaker.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "verified": false
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "D02_split_identity",
+    "expected": "An unambiguous first-person employee ID and department supplied across two turns should verify.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "returned_state": "resolved"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "D03_nested_hypothesis_evidence",
+    "expected": "A non-list hypothesis evidence field must safely fail validation without crashing.",
+    "passed": true,
+    "checks": {
+      "exception": null
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "D04_question_not_observation",
+    "expected": "A question asking which gateway is in use is not a resolving observation.",
+    "passed": true,
+    "checks": {
+      "active_conflicts": [
+        "当前实际网关 SH-01/HZ-01 尚未确认"
+      ],
+      "returned_state": "need_info"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "D05_no_action_success_claim",
+    "expected": "No successful action evidence means a password reset must not be reported as complete.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "returned_state": "escalated",
+      "reply": "抱歉，刚才的操作未能实际执行成功，我已经把情况转给人工 IT 支持，他们会尽快为你处理。"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "D06_partial_success_with_pending_approval",
+    "expected": "A successful standard grant must preserve the separate production approval handoff.",
+    "passed": true,
+    "checks": {
+      "returned_state": "escalated",
+      "reply": "已为你授予 grafana_readonly 权限，约 5 分钟后同步生效；未解决：Snowflake生产库权限待人工审批。",
+      "escalation": {
+        "reason": "policy_forbidden",
+        "urgency": "medium",
+        "summary": "【升级工单】\n- 员工: 张伟（E1001, engineering/employee）, 身份核验: 已通过\n- 问题描述: 申请Grafana只读和Snowflake生产库\n- 症状: 无\n- 已确认假设: 无\n- 已排除假设: 无\n- 证据冲突: 无\n- 已尝试方案: 无\n- 关键证据: 无\n- 升级原因: policy_forbidden\n- 未解决疑点: Snowflake生产库权限待人工审批\n- 建议处理: 已为你授予 grafana_readonly 权限，约 5 分钟后同步生效；未解决：Snowflake生产库权限待人工审批。",
+        "ticket_id": "ESC-66AC-001"
+      },
+      "successful_actions": 1
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "X01_quoted_department",
+    "expected": "A quoted example department must not verify the speaker.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "verified": false
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "X02_department_before_id",
+    "expected": "Department followed by employee ID should combine across turns, even before directory lookup.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "state": "resolved"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "X03_unrelated_historical_action",
+    "expected": "A previous successful password reset does not prove a new account unlock happened.",
+    "passed": true,
+    "checks": {
+      "successful_unlocks": 0,
+      "state": "escalated",
+      "reply": "抱歉，刚才的操作未能实际执行成功，我已经把情况转给人工 IT 支持，他们会尽快为你处理。"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "X04_partial_success_credential_truth",
+    "expected": "Preserving an escalation must also replace fabricated credentials with the actual action result.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "actual_password_present": true,
+      "fabricated_password_present": false,
+      "state": "escalated"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "X05_nested_conflict_evidence",
+    "expected": "Conflict evidence must be validated as a list before merging state.",
+    "passed": true,
+    "checks": {
+      "exception": null
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "Y01_unquoted_example_department",
+    "expected": "Accept only a real first-person department claim; punctuation alone does not decide ownership.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "verified": false,
+      "identity_claim": {
+        "source": "user_message",
+        "claimed_employee_id": "E1001",
+        "claimed_department": "",
+        "claimed_eid_source": "user_message",
+        "claimed_dept_source": "",
+        "claimed_eid_turn": 1,
+        "claimed_dept_turn": 0,
+        "department_subject": "",
+        "department_source": "",
+        "department_evidence": "",
+        "department_epoch": -1,
+        "current_epoch": 0,
+        "directory_employee_id": "E1001",
+        "directory_department": "engineering",
+        "eid_match": true,
+        "dept_match": false,
+        "result": "unverified",
+        "reason": "未声明本人部门"
+      }
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "Y02_quoted_own_department",
+    "expected": "Accept only a real first-person department claim; punctuation alone does not decide ownership.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "verified": true,
+      "identity_claim": {
+        "source": "user_message",
+        "claimed_employee_id": "E1001",
+        "claimed_department": "engineering",
+        "claimed_eid_source": "user_message",
+        "claimed_dept_source": "explicit_self",
+        "claimed_eid_turn": 1,
+        "claimed_dept_turn": 1,
+        "department_subject": "self",
+        "department_source": "explicit_self",
+        "department_evidence": "本人所在部门是“engineering”",
+        "department_epoch": 0,
+        "current_epoch": 0,
+        "directory_employee_id": "E1001",
+        "directory_department": "engineering",
+        "eid_match": true,
+        "dept_match": true,
+        "result": "verified"
+      }
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "Y03_same_turn_unrelated_success",
+    "expected": "A reset in this turn must not prove an unlock occurred in the same turn.",
+    "passed": true,
+    "checks": {
+      "successful_unlocks": 0,
+      "successful_actions": 1,
+      "state": "escalated",
+      "reply": "身份核验通过，已为你重置密码。临时密码：Temp-7738，30 分钟内有效，首次登录请立即修改；部分操作未能实际执行，已转人工 IT 支持处理。"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "Y04_repeat_prior_receipt",
+    "expected": "A request to repeat a prior successful receipt should reuse its result without rerunning or claiming the operation failed.",
+    "passed": true,
+    "checks": {
+      "successful_resets": 1,
+      "state": "need_info",
+      "actual_result_present": true,
+      "reply": "身份核验通过，已为你重置密码。临时密码：Temp-7472，30 分钟内有效，首次登录请立即修改；password已处理；password尚未恢复。"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "Z01_nested_status_list",
+    "expected": "An invalid nested enum type must safely normalize or fall back.",
+    "passed": true,
+    "checks": {
+      "exception": null
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "Z02_nested_question_text",
+    "expected": "A malformed question text must not crash after a successful action.",
+    "passed": true,
+    "checks": {
+      "exception": null,
+      "successful_actions": 1
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "Z03_undeclared_success_credential",
+    "expected": "A real action result remains authoritative when the model omits actions_taken.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "actual_password_present": true,
+      "fabricated_password_present": false,
+      "state": "escalated"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "W01_ui_label_not_identity",
+    "expected": "A UI label explicitly disclaimed as personal information must not verify identity.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "verified": false
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "W02_historical_action_wrong_target",
+    "expected": "A historical reset for E1001 must not substantiate a reset claim for E1002.",
+    "passed": true,
+    "checks": {
+      "successful_E1002_resets": 0,
+      "state": "escalated",
+      "reply": "抱歉，刚才的操作未能实际执行成功，我已经把情况转给人工 IT 支持，他们会尽快为你处理。"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "W03_pending_reply_credential_truth",
+    "expected": "Appending a real receipt to a continuing diagnosis must remove contradictory fabricated credentials.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "actual_password_present": true,
+      "fabricated_password_present": false,
+      "state": "pending_user"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "W04_nested_action_name",
+    "expected": "An action name of list type must safely degrade before execution.",
+    "passed": true,
+    "checks": {
+      "exception": null,
+      "actual_action_calls": 0
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "W05_undeclared_two_resources",
+    "expected": "Undeclared tool receipts must retain every successful resource for the same target and action type.",
+    "passed": true,
+    "checks": {
+      "actual_resources": [
+        "jira",
+        "grafana_readonly"
+      ],
+      "state": "resolved",
+      "reply": "已为你授予 jira 权限，约 5 分钟后同步生效。已为你授予 grafana_readonly 权限，约 5 分钟后同步生效。"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "N01_nonpersonal_document_department",
+    "expected": "A department mentioned in unrelated text and disclaimed as personal information must not verify identity.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "verified": false
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "N02_wrong_target_pronoun",
+    "expected": "The requested target must bind a success claim even when the reply uses a pronoun.",
+    "passed": false,
+    "checks": {
+      "successful_E1002_resets": 0,
+      "state": "resolved",
+      "reply": "他的密码已重置，现在可以登录。"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "N03_pending_unexecuted_unlock",
+    "expected": "A pending-user reply must not claim an unexecuted unlock just because reset succeeded.",
+    "passed": false,
+    "checks": {
+      "successful_unlocks": 0,
+      "state": "pending_user",
+      "false_unlock_claim": true
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "N04_response_state_open_issue",
+    "expected": "The externally returned state must stay open consistently with the unresolved issue.",
+    "passed": true,
+    "checks": {
+      "response_state": "pending_user",
+      "session_resolved": false,
+      "open_questions": [
+        {
+          "id": "1ff6f31c",
+          "text": "VPN是否恢复连接",
+          "status": "open",
+          "evidence": []
+        }
+      ]
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "N05_shared_error_code_not_answer",
+    "expected": "Repeating an error code and an unsuccessful reinstall does not answer the authentication-stage question.",
+    "passed": true,
+    "checks": {
+      "open_questions": [
+        {
+          "id": "60f21675",
+          "text": "错误809出现在输入密码之前还是MFA验证之后？",
+          "status": "open",
+          "evidence": []
+        }
+      ]
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "N06_explicit_year_correction",
+    "expected": "An explicit later year must not be removed because an earlier message omitted it.",
+    "passed": true,
+    "checks": {
+      "state": "need_info",
+      "reply": "已记录更正后的期限2027年10月28日，请提供审批经理工号",
+      "issue_description": "用户更正临时权限期限为2027年10月28日"
+    },
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "H01_explicit_handoff_contract",
+    "expected": "Explicit handoff creates a ticket with current facts and a valid, consistent reason.",
+    "passed": false,
+    "checks": {
+      "escalated": true,
+      "ticket_present": true,
+      "reason_in_contract": false,
+      "summary_reason_matches": false,
+      "current_facts_retained": true,
+      "no_model_needed": true
+    },
+    "product_exceptions": [],
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "H02_handoff_followup_trace",
+    "expected": "Each accepted message, including an escalated followup, must be traceable.",
+    "passed": false,
+    "checks": {
+      "supplement_saved": true,
+      "one_turn_event_per_input": false,
+      "turn_counter_advanced": false
+    },
+    "product_exceptions": [],
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "H03_quoted_handoff_not_request",
+    "expected": "A quoted or negated handoff phrase is not authorization to escalate.",
+    "passed": false,
+    "checks": {
+      "not_escalated": false,
+      "normal_diagnosis_used": false
+    },
+    "product_exceptions": [],
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "H04_negated_human_help",
+    "expected": "A quoted or negated handoff phrase is not authorization to escalate.",
+    "passed": false,
+    "checks": {
+      "not_escalated": false,
+      "normal_diagnosis_used": false
+    },
+    "product_exceptions": [],
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "H05_inactive_issue_aggregation",
+    "expected": "Resolving the active password issue must not close another explicitly open issue.",
+    "passed": true,
+    "checks": {
+      "old_issue_preserved": true,
+      "response_stays_open": true,
+      "session_stays_open": true
+    },
+    "product_exceptions": [],
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "H06_new_request_not_old_receipt",
+    "expected": "An explicit new reset request after completion needs a new receipt, not the prior request receipt.",
+    "passed": false,
+    "checks": {
+      "new_reset_executed": false,
+      "second_turn_resolved": false
+    },
+    "product_exceptions": [],
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "I01_negated_department_with_id",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_not_verified": true
+    },
+    "successful_actions": 0,
+    "verified": false,
+    "response_state": "need_info",
+    "department_claim": null,
+    "evidence": "supplemental/I01_negated_department_with_id.json",
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "I02_colleague_department_suffix",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_not_verified": true
+    },
+    "successful_actions": 0,
+    "verified": false,
+    "response_state": "need_info",
+    "department_claim": null,
+    "evidence": "supplemental/I02_colleague_department_suffix.json",
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "I03_pending_answer_document_context",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_not_verified": true,
+      "first_turn_asked_department": true,
+      "first_turn_no_action": true
+    },
+    "successful_actions": 0,
+    "verified": false,
+    "response_state": "need_info",
+    "department_claim": null,
+    "evidence": "supplemental/I03_pending_answer_document_context.json",
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "I04_pending_answer_negation",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_not_verified": true,
+      "first_turn_asked_department": true,
+      "first_turn_no_action": true
+    },
+    "successful_actions": 0,
+    "verified": false,
+    "response_state": "need_info",
+    "department_claim": null,
+    "evidence": "supplemental/I04_pending_answer_negation.json",
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "I05_quoted_self_with_unrelated_ui",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_verified": true
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "我的部门是“engineering”",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/I05_quoted_self_with_unrelated_ui.json",
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "I06_retract_identity_before_new_action",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_not_verified": true,
+      "first_turn_reset_executed": true
+    },
+    "successful_actions": 0,
+    "verified": false,
+    "response_state": "need_info",
+    "department_claim": null,
+    "evidence": "supplemental/I06_retract_identity_before_new_action.json",
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "I07_unrelated_correction_preserves_identity",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_verified": true,
+      "first_turn_reset_executed": true
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "我的部门是engineering",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/I07_unrelated_correction_preserves_identity.json",
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "I08_english_legitimate_self_claim",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_verified": true
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "my department is engineering",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/I08_english_legitimate_self_claim.json",
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "I09_english_quoted_third_party_claim",
+    "passed": false,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": false,
+      "identity_not_verified": false
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "my department is engineering\"",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/I09_english_quoted_third_party_claim.json",
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "I10_legitimate_self_plus_negated_other_department",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_verified": true
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "我的部门是engineering",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/I10_legitimate_self_plus_negated_other_department.json",
+    "environment": "system",
+    "suite": "existing"
+  },
+  {
+    "id": "A01_fabricated_department",
+    "expected": "No verification or action without a department actually supplied by the user",
+    "successful_actions": 0,
+    "identity_verified": false,
+    "passed": true,
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "A02_subject_switch",
+    "expected": "A lookup must not transfer E1001 authentication to E1002",
+    "successful_actions": 0,
+    "actual_targets": [],
+    "passed": true,
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "A03_resource_dedup",
+    "expected": "Claimed resources must match actual successful grants",
+    "granted_resources": [
+      "jira",
+      "grafana_readonly"
+    ],
+    "reply": "已为你授予 jira 权限，约 5 分钟后同步生效。已为你授予 grafana_readonly 权限，约 5 分钟后同步生效。",
+    "passed": true,
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "A04_action_transport_failure",
+    "expected": "Tool transport failure must prevent a success claim",
+    "successful_actions": 0,
+    "returned_state": "escalated",
+    "reply": "以下操作无法自动完成（工具 execute_action 暂时不可用（评测注入的模拟故障）），已转人工处理：reset_password",
+    "passed": true,
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "B01_employee_id_mismatch",
+    "expected": "The directory employee ID must match the user claim; a shared department is insufficient.",
+    "successful_actions": 0,
+    "actual_targets": [],
+    "identity_verified": false,
+    "passed": true,
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "B02_negated_department",
+    "expected": "A negated department name must not count as a matching department claim.",
+    "successful_actions": 0,
+    "actual_targets": [],
+    "identity_verified": false,
+    "passed": true,
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "C01_nested_action_params",
+    "expected": "Malformed nested params must not crash or execute an action.",
+    "passed": true,
+    "checks": {
+      "exception": null,
+      "successful_actions": 0
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "C02_unresolved_conflict",
+    "expected": "Explicit uncertainty must not resolve the gateway conflict.",
+    "passed": true,
+    "checks": {
+      "active_conflicts": [
+        "当前实际网关 SH-01/HZ-01 尚未确认"
+      ],
+      "returned_state": "need_info"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "C03_other_person_department",
+    "expected": "A department attributed to a colleague must not verify the claimant.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "identity_verified": false
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "D01_colleague_only_department",
+    "expected": "A colleague-only department claim must not authenticate the speaker.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "verified": false
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "D02_split_identity",
+    "expected": "An unambiguous first-person employee ID and department supplied across two turns should verify.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "returned_state": "resolved"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "D03_nested_hypothesis_evidence",
+    "expected": "A non-list hypothesis evidence field must safely fail validation without crashing.",
+    "passed": true,
+    "checks": {
+      "exception": null
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "D04_question_not_observation",
+    "expected": "A question asking which gateway is in use is not a resolving observation.",
+    "passed": true,
+    "checks": {
+      "active_conflicts": [
+        "当前实际网关 SH-01/HZ-01 尚未确认"
+      ],
+      "returned_state": "need_info"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "D05_no_action_success_claim",
+    "expected": "No successful action evidence means a password reset must not be reported as complete.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "returned_state": "escalated",
+      "reply": "抱歉，刚才的操作未能实际执行成功，我已经把情况转给人工 IT 支持，他们会尽快为你处理。"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "D06_partial_success_with_pending_approval",
+    "expected": "A successful standard grant must preserve the separate production approval handoff.",
+    "passed": true,
+    "checks": {
+      "returned_state": "escalated",
+      "reply": "已为你授予 grafana_readonly 权限，约 5 分钟后同步生效；未解决：Snowflake生产库权限待人工审批。",
+      "escalation": {
+        "reason": "policy_forbidden",
+        "urgency": "medium",
+        "summary": "【升级工单】\n- 员工: 张伟（E1001, engineering/employee）, 身份核验: 已通过\n- 问题描述: 申请Grafana只读和Snowflake生产库\n- 症状: 无\n- 已确认假设: 无\n- 已排除假设: 无\n- 证据冲突: 无\n- 已尝试方案: 无\n- 关键证据: 无\n- 升级原因: policy_forbidden\n- 未解决疑点: Snowflake生产库权限待人工审批\n- 建议处理: 已为你授予 grafana_readonly 权限，约 5 分钟后同步生效；未解决：Snowflake生产库权限待人工审批。",
+        "ticket_id": "ESC-E683-001"
+      },
+      "successful_actions": 1
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "X01_quoted_department",
+    "expected": "A quoted example department must not verify the speaker.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "verified": false
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "X02_department_before_id",
+    "expected": "Department followed by employee ID should combine across turns, even before directory lookup.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "state": "resolved"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "X03_unrelated_historical_action",
+    "expected": "A previous successful password reset does not prove a new account unlock happened.",
+    "passed": true,
+    "checks": {
+      "successful_unlocks": 0,
+      "state": "escalated",
+      "reply": "抱歉，刚才的操作未能实际执行成功，我已经把情况转给人工 IT 支持，他们会尽快为你处理。"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "X04_partial_success_credential_truth",
+    "expected": "Preserving an escalation must also replace fabricated credentials with the actual action result.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "actual_password_present": true,
+      "fabricated_password_present": false,
+      "state": "escalated"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "X05_nested_conflict_evidence",
+    "expected": "Conflict evidence must be validated as a list before merging state.",
+    "passed": true,
+    "checks": {
+      "exception": null
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "Y01_unquoted_example_department",
+    "expected": "Accept only a real first-person department claim; punctuation alone does not decide ownership.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "verified": false,
+      "identity_claim": {
+        "source": "user_message",
+        "claimed_employee_id": "E1001",
+        "claimed_department": "",
+        "claimed_eid_source": "user_message",
+        "claimed_dept_source": "",
+        "claimed_eid_turn": 1,
+        "claimed_dept_turn": 0,
+        "department_subject": "",
+        "department_source": "",
+        "department_evidence": "",
+        "department_epoch": -1,
+        "current_epoch": 0,
+        "directory_employee_id": "E1001",
+        "directory_department": "engineering",
+        "eid_match": true,
+        "dept_match": false,
+        "result": "unverified",
+        "reason": "未声明本人部门"
+      }
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "Y02_quoted_own_department",
+    "expected": "Accept only a real first-person department claim; punctuation alone does not decide ownership.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "verified": true,
+      "identity_claim": {
+        "source": "user_message",
+        "claimed_employee_id": "E1001",
+        "claimed_department": "engineering",
+        "claimed_eid_source": "user_message",
+        "claimed_dept_source": "explicit_self",
+        "claimed_eid_turn": 1,
+        "claimed_dept_turn": 1,
+        "department_subject": "self",
+        "department_source": "explicit_self",
+        "department_evidence": "本人所在部门是“engineering”",
+        "department_epoch": 0,
+        "current_epoch": 0,
+        "directory_employee_id": "E1001",
+        "directory_department": "engineering",
+        "eid_match": true,
+        "dept_match": true,
+        "result": "verified"
+      }
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "Y03_same_turn_unrelated_success",
+    "expected": "A reset in this turn must not prove an unlock occurred in the same turn.",
+    "passed": true,
+    "checks": {
+      "successful_unlocks": 0,
+      "successful_actions": 1,
+      "state": "escalated",
+      "reply": "身份核验通过，已为你重置密码。临时密码：Temp-5188，30 分钟内有效，首次登录请立即修改；部分操作未能实际执行，已转人工 IT 支持处理。"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "Y04_repeat_prior_receipt",
+    "expected": "A request to repeat a prior successful receipt should reuse its result without rerunning or claiming the operation failed.",
+    "passed": true,
+    "checks": {
+      "successful_resets": 1,
+      "state": "need_info",
+      "actual_result_present": true,
+      "reply": "身份核验通过，已为你重置密码。临时密码：Temp-1932，30 分钟内有效，首次登录请立即修改；password已处理；password尚未恢复。"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "Z01_nested_status_list",
+    "expected": "An invalid nested enum type must safely normalize or fall back.",
+    "passed": true,
+    "checks": {
+      "exception": null
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "Z02_nested_question_text",
+    "expected": "A malformed question text must not crash after a successful action.",
+    "passed": true,
+    "checks": {
+      "exception": null,
+      "successful_actions": 1
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "Z03_undeclared_success_credential",
+    "expected": "A real action result remains authoritative when the model omits actions_taken.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "actual_password_present": true,
+      "fabricated_password_present": false,
+      "state": "escalated"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "W01_ui_label_not_identity",
+    "expected": "A UI label explicitly disclaimed as personal information must not verify identity.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "verified": false
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "W02_historical_action_wrong_target",
+    "expected": "A historical reset for E1001 must not substantiate a reset claim for E1002.",
+    "passed": true,
+    "checks": {
+      "successful_E1002_resets": 0,
+      "state": "escalated",
+      "reply": "抱歉，刚才的操作未能实际执行成功，我已经把情况转给人工 IT 支持，他们会尽快为你处理。"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "W03_pending_reply_credential_truth",
+    "expected": "Appending a real receipt to a continuing diagnosis must remove contradictory fabricated credentials.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 1,
+      "actual_password_present": true,
+      "fabricated_password_present": false,
+      "state": "pending_user"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "W04_nested_action_name",
+    "expected": "An action name of list type must safely degrade before execution.",
+    "passed": true,
+    "checks": {
+      "exception": null,
+      "actual_action_calls": 0
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "W05_undeclared_two_resources",
+    "expected": "Undeclared tool receipts must retain every successful resource for the same target and action type.",
+    "passed": true,
+    "checks": {
+      "actual_resources": [
+        "jira",
+        "grafana_readonly"
+      ],
+      "state": "resolved",
+      "reply": "已为你授予 jira 权限，约 5 分钟后同步生效。已为你授予 grafana_readonly 权限，约 5 分钟后同步生效。"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "N01_nonpersonal_document_department",
+    "expected": "A department mentioned in unrelated text and disclaimed as personal information must not verify identity.",
+    "passed": true,
+    "checks": {
+      "successful_actions": 0,
+      "verified": false
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "N02_wrong_target_pronoun",
+    "expected": "The requested target must bind a success claim even when the reply uses a pronoun.",
+    "passed": false,
+    "checks": {
+      "successful_E1002_resets": 0,
+      "state": "resolved",
+      "reply": "他的密码已重置，现在可以登录。"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "N03_pending_unexecuted_unlock",
+    "expected": "A pending-user reply must not claim an unexecuted unlock just because reset succeeded.",
+    "passed": false,
+    "checks": {
+      "successful_unlocks": 0,
+      "state": "pending_user",
+      "false_unlock_claim": true
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "N04_response_state_open_issue",
+    "expected": "The externally returned state must stay open consistently with the unresolved issue.",
+    "passed": true,
+    "checks": {
+      "response_state": "pending_user",
+      "session_resolved": false,
+      "open_questions": [
+        {
+          "id": "163f7f1e",
+          "text": "VPN是否恢复连接",
+          "status": "open",
+          "evidence": []
+        }
+      ]
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "N05_shared_error_code_not_answer",
+    "expected": "Repeating an error code and an unsuccessful reinstall does not answer the authentication-stage question.",
+    "passed": true,
+    "checks": {
+      "open_questions": [
+        {
+          "id": "ad381144",
+          "text": "错误809出现在输入密码之前还是MFA验证之后？",
+          "status": "open",
+          "evidence": []
+        }
+      ]
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "N06_explicit_year_correction",
+    "expected": "An explicit later year must not be removed because an earlier message omitted it.",
+    "passed": true,
+    "checks": {
+      "state": "need_info",
+      "reply": "已记录更正后的期限2027年10月28日，请提供审批经理工号",
+      "issue_description": "用户更正临时权限期限为2027年10月28日"
+    },
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "H01_explicit_handoff_contract",
+    "expected": "Explicit handoff creates a ticket with current facts and a valid, consistent reason.",
+    "passed": false,
+    "checks": {
+      "escalated": true,
+      "ticket_present": true,
+      "reason_in_contract": false,
+      "summary_reason_matches": false,
+      "current_facts_retained": true,
+      "no_model_needed": true
+    },
+    "product_exceptions": [],
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "H02_handoff_followup_trace",
+    "expected": "Each accepted message, including an escalated followup, must be traceable.",
+    "passed": false,
+    "checks": {
+      "supplement_saved": true,
+      "one_turn_event_per_input": false,
+      "turn_counter_advanced": false
+    },
+    "product_exceptions": [],
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "H03_quoted_handoff_not_request",
+    "expected": "A quoted or negated handoff phrase is not authorization to escalate.",
+    "passed": false,
+    "checks": {
+      "not_escalated": false,
+      "normal_diagnosis_used": false
+    },
+    "product_exceptions": [],
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "H04_negated_human_help",
+    "expected": "A quoted or negated handoff phrase is not authorization to escalate.",
+    "passed": false,
+    "checks": {
+      "not_escalated": false,
+      "normal_diagnosis_used": false
+    },
+    "product_exceptions": [],
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "H05_inactive_issue_aggregation",
+    "expected": "Resolving the active password issue must not close another explicitly open issue.",
+    "passed": true,
+    "checks": {
+      "old_issue_preserved": true,
+      "response_stays_open": true,
+      "session_stays_open": true
+    },
+    "product_exceptions": [],
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "H06_new_request_not_old_receipt",
+    "expected": "An explicit new reset request after completion needs a new receipt, not the prior request receipt.",
+    "passed": false,
+    "checks": {
+      "new_reset_executed": false,
+      "second_turn_resolved": false
+    },
+    "product_exceptions": [],
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "I01_negated_department_with_id",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_not_verified": true
+    },
+    "successful_actions": 0,
+    "verified": false,
+    "response_state": "need_info",
+    "department_claim": null,
+    "evidence": "supplemental/I01_negated_department_with_id.json",
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "I02_colleague_department_suffix",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_not_verified": true
+    },
+    "successful_actions": 0,
+    "verified": false,
+    "response_state": "need_info",
+    "department_claim": null,
+    "evidence": "supplemental/I02_colleague_department_suffix.json",
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "I03_pending_answer_document_context",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_not_verified": true,
+      "first_turn_asked_department": true,
+      "first_turn_no_action": true
+    },
+    "successful_actions": 0,
+    "verified": false,
+    "response_state": "need_info",
+    "department_claim": null,
+    "evidence": "supplemental/I03_pending_answer_document_context.json",
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "I04_pending_answer_negation",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_not_verified": true,
+      "first_turn_asked_department": true,
+      "first_turn_no_action": true
+    },
+    "successful_actions": 0,
+    "verified": false,
+    "response_state": "need_info",
+    "department_claim": null,
+    "evidence": "supplemental/I04_pending_answer_negation.json",
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "I05_quoted_self_with_unrelated_ui",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_verified": true
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "我的部门是“engineering”",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/I05_quoted_self_with_unrelated_ui.json",
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "I06_retract_identity_before_new_action",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_not_verified": true,
+      "first_turn_reset_executed": true
+    },
+    "successful_actions": 0,
+    "verified": false,
+    "response_state": "need_info",
+    "department_claim": null,
+    "evidence": "supplemental/I06_retract_identity_before_new_action.json",
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "I07_unrelated_correction_preserves_identity",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_verified": true,
+      "first_turn_reset_executed": true
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "我的部门是engineering",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/I07_unrelated_correction_preserves_identity.json",
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "I08_english_legitimate_self_claim",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_verified": true
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "my department is engineering",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/I08_english_legitimate_self_claim.json",
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "I09_english_quoted_third_party_claim",
+    "passed": false,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": false,
+      "identity_not_verified": false
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "my department is engineering\"",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/I09_english_quoted_third_party_claim.json",
+    "environment": "pinned",
+    "suite": "existing"
+  },
+  {
+    "id": "I10_legitimate_self_plus_negated_other_department",
+    "passed": true,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": true,
+      "identity_verified": true
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "我的部门是engineering",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/I10_legitimate_self_plus_negated_other_department.json",
+    "environment": "pinned",
+    "suite": "existing"
+  }
+]

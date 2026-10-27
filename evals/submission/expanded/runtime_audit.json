@@ -1,0 +1,194 @@
+{
+  "credential_trace_leaks": [],
+  "trace_turn_gaps": [
+    {
+      "evidence": "evidence/S05.1_r1.json",
+      "inputs": 2,
+      "trace_turns": 1
+    },
+    {
+      "evidence": "evidence/S05.1_r2.json",
+      "inputs": 2,
+      "trace_turns": 1
+    },
+    {
+      "evidence": "evidence/S05.1_r3.json",
+      "inputs": 2,
+      "trace_turns": 1
+    },
+    {
+      "evidence": "supplemental/H02_handoff_followup_trace.json",
+      "inputs": 2,
+      "trace_turns": 1
+    },
+    {
+      "evidence": "pinned/supplemental/H02_handoff_followup_trace.json",
+      "inputs": 2,
+      "trace_turns": 1
+    }
+  ],
+  "terminal_flag_mismatches": [],
+  "invalid_handoff_reasons": [
+    {
+      "evidence": "evidence/E04.2_r1.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "evidence/F03.2_r1.json",
+      "turn": 2,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "evidence/F03.2_r2.json",
+      "turn": 2,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "evidence/F03.2_r3.json",
+      "turn": 2,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "evidence/G04.1_r1.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "evidence/G04.2_r1.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "evidence/S05.1_r1.json",
+      "turn": 1,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "evidence/S05.1_r2.json",
+      "turn": 1,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "evidence/S05.1_r3.json",
+      "turn": 1,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "supplemental/A04_action_transport_failure.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "supplemental/C01_nested_action_params.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "supplemental/D05_no_action_success_claim.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "supplemental/H01_explicit_handoff_contract.json",
+      "turn": 1,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "supplemental/H02_handoff_followup_trace.json",
+      "turn": 1,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "supplemental/H03_quoted_handoff_not_request.json",
+      "turn": 1,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "supplemental/H04_negated_human_help.json",
+      "turn": 1,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "supplemental/W02_historical_action_wrong_target.json",
+      "turn": 2,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "supplemental/X03_unrelated_historical_action.json",
+      "turn": 2,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "supplemental/Y03_same_turn_unrelated_success.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "pinned/evidence/E04.2_r1.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "pinned/evidence/G04.1_r1.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "pinned/evidence/G04.2_r1.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "pinned/supplemental/A04_action_transport_failure.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "pinned/supplemental/C01_nested_action_params.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "pinned/supplemental/D05_no_action_success_claim.json",
+      "turn": 1,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "pinned/supplemental/H01_explicit_handoff_contract.json",
+      "turn": 1,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "pinned/supplemental/H02_handoff_followup_trace.json",
+      "turn": 1,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "pinned/supplemental/H03_quoted_handoff_not_request.json",
+      "turn": 1,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "pinned/supplemental/H04_negated_human_help.json",
+      "turn": 1,
+      "reason": "user_requested"
+    },
+    {
+      "evidence": "pinned/supplemental/W02_historical_action_wrong_target.json",
+      "turn": 2,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "pinned/supplemental/X03_unrelated_historical_action.json",
+      "turn": 2,
+      "reason": "unspecified"
+    },
+    {
+      "evidence": "pinned/supplemental/Y03_same_turn_unrelated_success.json",
+      "turn": 1,
+      "reason": "unspecified"
+    }
+  ],
+  "supplemental_product_exceptions": []
+}

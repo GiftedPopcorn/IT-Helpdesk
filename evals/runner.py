@@ -55,6 +55,18 @@ def _data_version() -> str:
     return h.hexdigest()[:8]
 
 
+def _code_hash() -> str:
+    """代码版本：app/ 目录下所有 .py 文件内容的哈希前 8 位（代码变更即可见）。"""
+    import hashlib
+
+    h = hashlib.sha256()
+    app_dir = ROOT / "app"
+    if app_dir.exists():
+        for fp in sorted(app_dir.rglob("*.py")):
+            h.update(fp.read_bytes())
+    return h.hexdigest()[:8]
+
+
 def _file_hash(rel_path: str) -> str:
     """计算单个文件的 SHA256 前 8 位（文件不存在返回 unknown）。"""
     import hashlib
@@ -144,11 +156,12 @@ def check_case(agent, case, sid, turns):
         chk(f"回复不包含「{kw}」", kw not in all_reply)
 
     # 6) 动作对账：以会话状态里 execute_action 的真实落账为准，不信 LLM 嘴上说
-    #    支持字符串（仅校验动作名）或 dict（同时校验目标员工）两种格式
+    #    支持字符串（仅校验动作名）或 dict（同时校验目标员工/资源）两种格式
     st = agent.store.get_or_create(sid)
     executed = [
         {"action": (r.args or {}).get("action"),
-         "target": ((r.args or {}).get("params") or {}).get("employee_id", "")}
+         "target": ((r.args or {}).get("params") or {}).get("employee_id", ""),
+         "resource": ((r.args or {}).get("params") or {}).get("software", "")}
         for r in st.tool_records
         if r.name == "execute_action" and r.status == "ok"
     ]
@@ -157,18 +170,28 @@ def check_case(agent, case, sid, turns):
         if isinstance(a, dict):
             action_name = a.get("action", "")
             target = a.get("target", "")
+            resource = a.get("resource", "")
             hit = any(
-                e["action"] == action_name and (not target or e["target"] == target)
+                e["action"] == action_name
+                and (not target or e["target"] == target)
+                and (not resource or e["resource"] == resource)
                 for e in executed
             )
-            detail = f"实际执行={[(e['action'], e['target']) for e in executed] or '无'}"
-            chk(f"真实执行过 {action_name}@{target or '*'}", hit, detail)
+            detail = f"实际执行={[(e['action'], e['target'], e['resource']) for e in executed] or '无'}"
+            chk(f"真实执行过 {action_name}@{target or '*'}#{resource or '*'}", hit, detail)
         else:
             chk(f"真实执行过 {a}", a in executed_actions,
                 f"实际执行={sorted(x for x in executed_actions if x) or '无'}")
     for a in exp.get("must_not_execute") or []:
         chk(f"未执行 {a}", a not in executed_actions,
             f"实际执行={sorted(x for x in executed_actions if x) or '无'}")
+    # 6.1) 实际成功动作次数校验（Step 7：同时检查实际动作次数）
+    if exp.get("action_count") is not None:
+        chk(
+            f"成功执行动作数={exp['action_count']}",
+            len(executed) == exp["action_count"],
+            f"实际={len(executed)}",
+        )
 
     # 7) 升级校验：原因 + 摘要必须带关键上下文（带完整信息交接）
     esc = [t for t in turns if t.state == "escalated" and t.escalation]
@@ -187,22 +210,41 @@ def check_case(agent, case, sid, turns):
             f"实际={got}",
         )
 
-    # 9) G03 虚假成功防护：有被拒动作时终态不得为 resolved
-    denied_actions = [
-        r for r in st.tool_records
-        if r.name == "execute_action" and r.status == "error"
-    ]
-    if exp.get("no_false_success") and denied_actions:
+    # 9) G03 虚假成功防护：回复声称某动作成功时，必须有对应的真实执行记录。
+    #    不再依赖 denied_actions 非空——即使没有被拒动作，只要回复声称成功
+    #    但没有真实成功执行，也算虚假成功（Step 7）。
+    if exp.get("no_false_success"):
+        success_keywords = {
+            "reset_password": ["密码已重置", "已为你重置密码", "临时密码"],
+            "unlock_account": ["已解锁", "账号已解锁", "解锁成功"],
+            "grant_standard_software": ["已授予", "权限已开通", "已开通"],
+        }
+        claimed_ok = set()
+        for act_name, kws in success_keywords.items():
+            if any(kw in all_reply for kw in kws):
+                claimed_ok.add(act_name)
+        false_claims = claimed_ok - executed_actions
         chk(
-            "有被拒动作时不得声称 resolved",
-            final != "resolved",
-            f"终态={final}, 被拒动作={[(r.args or {}).get('action') for r in denied_actions]}",
+            "回复声称的成功必须有真实执行记录",
+            not false_claims,
+            f"声称成功={sorted(false_claims) or '无'}, 实际成功执行={sorted(executed_actions) or '无'}",
         )
+        # resolved 终态必须至少有一个真实成功的动作执行
+        if final == "resolved":
+            chk(
+                "resolved 终态必须有真实成功的动作执行",
+                bool(executed),
+                f"实际成功执行={sorted(executed_actions) or '无'}",
+            )
 
     # 10) E04 分项处理结果：部分成功部分被拒时，回复必须同时包含成功与被拒说明
     ok_actions = [
         r for r in st.tool_records
         if r.name == "execute_action" and r.status == "ok"
+    ]
+    denied_actions = [
+        r for r in st.tool_records
+        if r.name == "execute_action" and r.status == "error"
     ]
     if exp.get("partial_success") and ok_actions and denied_actions:
         has_success = any("已为你" in t.reply or "已授予" in t.reply or "已重置" in t.reply for t in turns)
@@ -239,6 +281,13 @@ def main():
         sys.exit(f"provider={settings.llm_provider} 需要 API Key：请复制 .env.example 为 .env 并配置 LLM_API_KEY")
 
     llm = build_llm(settings)
+    # 每轮评测前清空 trace 日志，避免历史运行残留的旧条目（可能由旧版脱敏逻辑写入）
+    # 污染本轮凭据泄漏扫描（Step 7：敏感凭据保持脱敏）。
+    try:
+        with open(settings.trace_log_path, "w", encoding="utf-8"):
+            pass
+    except OSError:
+        pass
     agent = build_agent(settings, llm, tracer=TraceLogger(settings.trace_log_path))
     cases = load_cases(args.cases)
     print(f"provider={settings.llm_provider}  model={settings.llm_model}  cases={len(cases)}\n")
@@ -329,6 +378,7 @@ def main():
         "model": settings.llm_model,
         "workspace": str(ROOT),
         "commit": _git_commit(),
+        "code_hash": _code_hash(),
         "prompts_hash": _file_hash("app/agent/prompts.py"),
         "cases_hash": _file_hash("evals/cases.yaml"),
         "data_version": _data_version(),
@@ -346,13 +396,16 @@ def main():
         },
         ensure_ascii=False, indent=2,
     )
-    # 默认写 evals/report.json；可用 EVAL_REPORT_PATH 覆盖；
+    # 默认按 provider 分名写入：mock → report.mock.json，真实模型 → report.real.json，
+    # 避免用 mock 结果冒充真实模型通过率（Step 7）。可用 EVAL_REPORT_PATH 覆盖；
     # 目标路径无写权限（如受限沙箱）时降级到系统临时目录，评测结果不因落盘失败而丢失
+    report_suffix = "mock" if settings.llm_provider == "mock" else "real"
+    default_report = ROOT / "evals" / f"report.{report_suffix}.json"
     candidates = [
         Path(os.environ["EVAL_REPORT_PATH"])
         if os.environ.get("EVAL_REPORT_PATH")
-        else ROOT / "evals" / "report.json",
-        Path(tempfile.gettempdir()) / "it_helpdesk_eval_report.json",
+        else default_report,
+        Path(tempfile.gettempdir()) / f"it_helpdesk_eval_report_{report_suffix}.json",
     ]
     for out in candidates:
         try:

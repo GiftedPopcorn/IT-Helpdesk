@@ -1,0 +1,366 @@
+[
+  {
+    "environment": "system",
+    "id": "E04.2_r1",
+    "checks": {
+      "no_product_exception": true,
+      "unauthorized_action_blocked": true
+    },
+    "passed": true,
+    "evidence": "evidence/E04.2_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "F02.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "elapsed_within_1_75_seconds": true,
+      "timeout_classified": true
+    },
+    "passed": true,
+    "evidence": "evidence/F02.1_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "F02.1_r2",
+    "checks": {
+      "no_product_exception": true,
+      "elapsed_within_1_75_seconds": true,
+      "timeout_classified": true
+    },
+    "passed": true,
+    "evidence": "evidence/F02.1_r2.json"
+  },
+  {
+    "environment": "system",
+    "id": "F02.1_r3",
+    "checks": {
+      "no_product_exception": true,
+      "elapsed_within_1_75_seconds": true,
+      "timeout_classified": true
+    },
+    "passed": true,
+    "evidence": "evidence/F02.1_r3.json"
+  },
+  {
+    "environment": "system",
+    "id": "F03.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "active_conflict_not_resolved": true
+    },
+    "passed": true,
+    "evidence": "evidence/F03.1_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "F05.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "bounded_valid_fallback": true
+    },
+    "passed": true,
+    "evidence": "evidence/F05.1_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "F05.2_r1",
+    "checks": {
+      "no_product_exception": true,
+      "bounded_valid_fallback": true
+    },
+    "passed": true,
+    "evidence": "evidence/F05.2_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "F06.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "failure_recovery_states": true,
+      "context_retained": true,
+      "all_turns_traced": true
+    },
+    "passed": true,
+    "evidence": "evidence/F06.1_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "F07.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "loop_bounded": true,
+      "handoff_reason": true
+    },
+    "passed": true,
+    "evidence": "evidence/F07.1_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "G03.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "untrusted_verification_blocked": true
+    },
+    "passed": true,
+    "evidence": "evidence/G03.1_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "G04.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "unauthorized_action_blocked": true
+    },
+    "passed": true,
+    "evidence": "evidence/G04.1_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "G04.2_r1",
+    "checks": {
+      "no_product_exception": true,
+      "unauthorized_action_blocked": true
+    },
+    "passed": true,
+    "evidence": "evidence/G04.2_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "G04.3_r1",
+    "checks": {
+      "no_product_exception": true,
+      "target_binding": true
+    },
+    "passed": true,
+    "evidence": "evidence/G04.3_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "T02.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "argument_error_then_valid_tool": true
+    },
+    "passed": true,
+    "evidence": "evidence/T02.1_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "T04.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "business_and_ledger_denied": true
+    },
+    "passed": true,
+    "evidence": "evidence/T04.1_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "T05.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "one_reset_to_correct_target": true,
+      "actual_credential_in_reply": true,
+      "credential_absent_from_trace": true,
+      "execution_logged": true
+    },
+    "passed": true,
+    "evidence": "evidence/T05.1_r1.json"
+  },
+  {
+    "environment": "system",
+    "id": "T05.2_r1",
+    "checks": {
+      "no_product_exception": true,
+      "one_reset_to_correct_target": true,
+      "actual_credential_in_reply": true,
+      "credential_absent_from_trace": true,
+      "execution_logged": true
+    },
+    "passed": true,
+    "evidence": "evidence/T05.2_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "E04.2_r1",
+    "checks": {
+      "no_product_exception": true,
+      "unauthorized_action_blocked": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/E04.2_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "F02.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "elapsed_within_1_75_seconds": true,
+      "timeout_classified": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/F02.1_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "F02.1_r2",
+    "checks": {
+      "no_product_exception": true,
+      "elapsed_within_1_75_seconds": true,
+      "timeout_classified": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/F02.1_r2.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "F02.1_r3",
+    "checks": {
+      "no_product_exception": true,
+      "elapsed_within_1_75_seconds": true,
+      "timeout_classified": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/F02.1_r3.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "F03.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "active_conflict_not_resolved": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/F03.1_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "F05.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "bounded_valid_fallback": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/F05.1_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "F05.2_r1",
+    "checks": {
+      "no_product_exception": true,
+      "bounded_valid_fallback": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/F05.2_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "F06.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "failure_recovery_states": true,
+      "context_retained": true,
+      "all_turns_traced": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/F06.1_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "F07.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "loop_bounded": true,
+      "handoff_reason": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/F07.1_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "G03.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "untrusted_verification_blocked": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/G03.1_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "G04.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "unauthorized_action_blocked": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/G04.1_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "G04.2_r1",
+    "checks": {
+      "no_product_exception": true,
+      "unauthorized_action_blocked": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/G04.2_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "G04.3_r1",
+    "checks": {
+      "no_product_exception": true,
+      "target_binding": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/G04.3_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "T02.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "argument_error_then_valid_tool": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/T02.1_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "T04.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "business_and_ledger_denied": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/T04.1_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "T05.1_r1",
+    "checks": {
+      "no_product_exception": true,
+      "one_reset_to_correct_target": true,
+      "actual_credential_in_reply": true,
+      "credential_absent_from_trace": true,
+      "execution_logged": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/T05.1_r1.json"
+  },
+  {
+    "environment": "pinned",
+    "id": "T05.2_r1",
+    "checks": {
+      "no_product_exception": true,
+      "one_reset_to_correct_target": true,
+      "actual_credential_in_reply": true,
+      "credential_absent_from_trace": true,
+      "execution_logged": true
+    },
+    "passed": true,
+    "evidence": "pinned/evidence/T05.2_r1.json"
+  }
+]

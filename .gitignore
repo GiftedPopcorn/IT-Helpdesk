@@ -5,3 +5,8 @@ __pycache__/
 logs/
 evals/report.json
 .pytest_cache/
+.idea/
+assessment/
+.screenshots/
+.env.*
+!.env.example

@@ -84,9 +84,16 @@ class OutcomeEngine:
                 continue
             # 动作还没真正执行成功过（execute_action 返回 ok）的才拦截已执行声明：
             # 这里只拦"声明已做但策略不允许"的情况，实际执行拦截在 execute_action 里
+            # Step 4：使用有效的核验记录（而非仅布尔值），与 actions.py 闸门保持一致
             user = state.verified_subject or {}
+            verified = state.has_valid_identity_verification()
+            # 身份类动作在核验未通过时不可能被 execute_action 执行成功（闸门已拒），
+            # 此时 actions_taken 中的声明是 LLM 误报。不按"策略禁止"升级，
+            # 交由规则 2 追问缺失的身份信息（设置 pending_identity_question）。
+            if action_name in IDENTITY_ACTIONS and not verified:
+                continue
             allowed, clause = self.policy.allowed(
-                action_name, user, state.issue.verified_identity
+                action_name, user, verified
             )
             if not allowed and action_name:
                 return self._escalate(
@@ -119,46 +126,79 @@ class OutcomeEngine:
 
         # 规则 2：身份门槛 —— resolved/pending_user 携带账号类动作但身份未核验
         if state_name in ("resolved", "pending_user") and self._needs_identity(final):
-            if not state.issue.verified_identity:
+            # Step 4：核验必须"仍有效"才算已核验（部门声明被撤回则视为未核验）
+            if not state.has_valid_identity_verification():
                 if state.identity_ask_count >= 2:
                     return self._escalate(
                         final, state, reason="identity_unverified",
                         note="两次索要身份信息仍未核验，强制升级",
                     )
                 state.identity_ask_count += 1
-                gap = "employee_id（工号）"
+                # Step 3：根据缺失字段决定追问内容，并设置 pending_identity_question，
+                # 使用户下一轮的裸回答能被 _extract_department 接受为本人声明。
+                has_eid = bool(state.last_claimed_eid)
+                has_dept = state.department_claim is not None
+                if not has_eid:
+                    gap = "employee_id（工号）"
+                    ask_msg = (
+                        "进行账号操作前，我需要先核验你的身份。"
+                        "请提供你的工号（employee_id）和所在部门（如 engineering / finance）。"
+                    )
+                    # 工号优先：先问工号；用户回答工号后 _save_identity_claims 会自动
+                    # 设置 department 的 pending 问题。
+                    state.pending_identity_question = {
+                        "field": "employee_id", "subject": "self",
+                        "asked_turn": state.turn_count,
+                        "identity_epoch": state.identity_epoch,
+                    }
+                elif not has_dept:
+                    gap = "department（部门）"
+                    ask_msg = (
+                        "进行账号操作前，我还需要确认你的部门。"
+                        "请告诉我你所在的部门（如 engineering / finance）。"
+                    )
+                    state.pending_identity_question = {
+                        "field": "department", "subject": "self",
+                        "asked_turn": state.turn_count,
+                        "identity_epoch": state.identity_epoch,
+                    }
+                else:
+                    # 两者都有但与目录不匹配 → 身份核验失败，升级人工处理（G03：
+                    # 工号与部门不匹配时不得声称成功，必须转人工核实）。
+                    return self._escalate(
+                        final, state, reason="identity_unverified",
+                        note="身份信息与目录记录不匹配，转人工核实",
+                    )
                 if gap not in state.clarified_gaps:
                     state.clarified_gaps.append(gap)
                 rewritten = dict(final)
                 rewritten["state"] = "need_info"
                 rewritten["confidence"] = min(conf, 0.6)
-                rewritten["user_message"] = (
-                    "进行账号操作前，我需要先核验你的身份。请提供你的工号（employee_id）。"
-                )
+                rewritten["user_message"] = ask_msg
                 return Verdict("rewrite", rewritten, reason="identity_gate",
-                               notes=["身份未核验，改写为追问"])
+                               notes=[f"身份未核验，追问{gap}"])
 
         # 规则 3：置信度地板 —— 低置信先追问，追问过无进展则升级
         if state_name == "resolved" and conf < self.confidence_floor:
-            if state.clarified_gaps and not state.new_tool_evidence_since(state.last_clarify_turn):
+            if state.clarified_gaps and not state.has_new_progress_since(state.last_clarify_turn):
                 return self._escalate(
                     final, state, reason="low_confidence_no_progress",
-                    note=f"confidence={conf:.2f} 低于地板且追问后无新证据",
+                    note=f"confidence={conf:.2f} 低于地板且追问后无新进展",
                 )
             rewritten = dict(final)
             rewritten["state"] = "need_info"
             return Verdict("rewrite", rewritten, reason="confidence_floor",
                            notes=[f"confidence={conf:.2f} < {self.confidence_floor}，改写为追问"])
 
-        # 规则 4：防追问循环 —— 本次已是第 consecutive+1 次连续追问，
-        # 即本次至少是第 2 次；且期间无新工具证据 → 升级（clarification_loop）
+        # 规则 4：防追问循环 —— 连续追问且期间无新进展（工具结果或用户新事实）→ 升级
+        # C01：用户补充地点、版本、错误码等新事实也算进展，不能只看工具调用。
         if state_name == "need_info":
-            if state.consecutive_need_info >= 1 and not state.new_tool_evidence_since(
+            if state.consecutive_need_info >= 1 and not state.has_new_progress_since(
                 state.last_clarify_turn
             ):
                 return self._escalate(
                     final, state, reason="clarification_loop",
-                    note="连续追问仍无法定位问题，强制升级",
+                    note="连续追问仍无新进展，强制升级",
                 )
 
         # 规则 5：升级摘要补全
@@ -178,6 +218,28 @@ class OutcomeEngine:
                 if "人工" in (final.get("user_message") or "")
                 else "这个问题超出了我能自动处理的范围，我已经把完整的调查记录转给人工 IT 支持。"
             )
+
+        # 身份声明真实性护栏：若核验未通过，回复中不得声称"身份已核实/已核对"，
+        # 避免 LLM 把未完成的核验说成已完成（与 D05 凭证声明对账同理）。
+        # 注意：只匹配"已+动词"或"动词+完成态(完毕/通过/成功)"，
+        # 不删裸"身份核验"——否则会误伤"用于身份核验"、"身份核验未通过"等合法表达。
+        if not state.has_valid_identity_verification():
+            import re as _re
+            msg = final.get("user_message", "") or ""
+            fake_identity_patterns = [
+                r"身份已(?:核实|核对|验证|核验|确认)(?:完毕|通过|成功)?",
+                r"身份(?:核实|核对|验证|核验|确认)(?:完毕|通过|成功)",
+                r"已核实(?:了)?身份",
+                r"已核对(?:了)?(?:你的)?身份",
+                r"身份信息已(?:核实|核对|验证)(?:完毕|通过)?",
+                r"身份信息(?:核实|核对|验证)(?:完毕|通过)",
+            ]
+            for pat in fake_identity_patterns:
+                msg = _re.sub(pat, "", msg)
+            msg = _re.sub(r"[，；;]\s*[，；;]", "，", msg)
+            msg = _re.sub(r"\s{2,}", " ", msg).strip(" ，；;。")
+            final = dict(final)
+            final["user_message"] = msg
 
         return Verdict("pass", final)
 
@@ -227,18 +289,29 @@ class OutcomeEngine:
 
         confirmed = [h.text for h in state.hypotheses if h.status == "confirmed"]
         rejected = [h.text for h in state.hypotheses if h.status == "rejected"]
-        evidence = list(dict.fromkeys(final.get("evidence", []) or []))
+        # 防御：evidence 可能是非可迭代类型（如 int/str），需先归一化为列表
+        ev_raw = final.get("evidence", [])
+        if isinstance(ev_raw, list):
+            evidence = list(dict.fromkeys(e for e in ev_raw if isinstance(e, str)))
+        elif isinstance(ev_raw, str):
+            evidence = [ev_raw] if ev_raw else []
+        else:
+            evidence = []
         attempted = issue.attempted or []
-        suggestion = _extract_suggestion(final.get("user_message", ""))
+        suggestion = _extract_suggestion(final.get("user_message", "") or "")
 
         # 确定性收集"被策略拒绝/禁止的动作名"，保证升级工单点名具体动作：
         # 1) 规则引擎/对账路径写入的 forbidden_action
-        # 2) execute_action 被拒的调用
+        # 2) execute_action 被拒的调用（仅限本轮，避免把上一问题的失败动作
+        #    混入当前问题的升级工单，防止"此前成功的操作被误报为失败"）
         # 3) check_policy 返回结果里被标"禁止"的动作（LLM 查了边界但未尝试动作的场景）
         names: List[str] = []
         if esc.get("forbidden_action"):
             names.append(esc["forbidden_action"])
         for r in state.tool_records:
+            # 只统计本轮（r.turn == state.turn_count）的被拒动作，跨问题不串扰
+            if r.turn != state.turn_count:
+                continue
             if r.name == "execute_action" and r.status == "error":
                 a = (r.args or {}).get("action")
                 if a:
@@ -333,6 +406,8 @@ def _extract_suggestion(user_message: str) -> str:
     """从给用户的回复里提取一句话建议（截断），供升级摘要引用。"""
     if not user_message:
         return ""
+    if not isinstance(user_message, str):
+        user_message = str(user_message)
     line = user_message.strip().split("\n")[0]
     return line[:80]
 
@@ -379,56 +454,198 @@ def normalize_final(final: Any) -> Optional[Dict[str, Any]]:
     out["evidence"] = (
         [e for e in ev if isinstance(e, str)] if isinstance(ev, list) else []
     )
-    # actions_taken：必须是 dict 列表，每项的 params 必须是 dict
-    # 若 params 非 dict 且非 None（如字符串/数字），视为非法参数，丢弃该动作，
-    # 避免 normalize 后 params={} 导致动作被错误执行（C01：非法参数不触发动作）
+    # validation_notes：贯穿 actions_taken / issue_update 等多段校验的字段路径记录。
+    # 必须在所有引用之前初始化，否则 actions_taken 校验时会 NameError。
+    validation_notes: List[str] = []
+    # actions_taken：契约级校验，非法动作直接拒绝（不通过 str()/空字典兜底
+    # 把坏输入变成可执行请求）。
+    # W04：action=["reset_password"]（list）或 action=null/42/{} 会在后续
+    # 集合成员判断或动作执行时崩溃；必须在此处拦截。
+    # 校验维度：
+    #   - action 必须是非空字符串，且属于支持的动作（IDENTITY_ACTIONS 或 READONLY_TOOLS）
+    #   - params 必须是 dict（None 视为空）
+    #   - 可执行动作的关键字段类型校验：employee_id 须为 str|None，
+    #     grant_standard_software 的 software 须为 str|None
+    # 校验失败的动作丢弃，不触发执行；validation_notes 记录字段路径（不含凭据值）。
+    SUPPORTED_ACTIONS = IDENTITY_ACTIONS | READONLY_TOOLS
     at = final.get("actions_taken", [])
     if isinstance(at, list):
         cleaned_actions = []
-        for a in at:
+        for idx, a in enumerate(at):
+            path = f"actions_taken[{idx}]"
             if not isinstance(a, dict):
+                validation_notes.append(f"{path}: expected dict, got {type(a).__name__}")
+                continue
+            action = a.get("action")
+            # action 必须是非空字符串
+            if not isinstance(action, str) or not action.strip():
+                validation_notes.append(
+                    f"{path}.action: expected non-empty str, got {type(action).__name__}"
+                )
+                continue
+            action = action.strip()
+            # action 必须是支持的动作名
+            if action not in SUPPORTED_ACTIONS:
+                validation_notes.append(
+                    f"{path}.action: unsupported action {action!r}"
+                )
                 continue
             params = a.get("params")
+            # params 必须是 dict 或 None
             if params is not None and not isinstance(params, dict):
-                continue  # 非法参数类型 → 丢弃该动作，不触发执行
-            cleaned_actions.append(a)
+                validation_notes.append(
+                    f"{path}.params: expected dict|None, got {type(params).__name__}"
+                )
+                continue
+            params = params or {}
+            # 可执行动作的关键字段类型校验（仅校验类型，不做策略判断）
+            if action in IDENTITY_ACTIONS:
+                eid = params.get("employee_id")
+                if eid is not None and not isinstance(eid, str):
+                    validation_notes.append(
+                        f"{path}.params.employee_id: expected str|None, got {type(eid).__name__}"
+                    )
+                    continue
+                if action == "grant_standard_software":
+                    sw = params.get("software")
+                    if sw is not None and not isinstance(sw, str):
+                        validation_notes.append(
+                            f"{path}.params.software: expected str|None, got {type(sw).__name__}"
+                        )
+                        continue
+            # 校验通过：保留原 dict（action 已 strip）
+            cleaned = dict(a)
+            cleaned["action"] = action
+            cleaned["params"] = params
+            cleaned_actions.append(cleaned)
         out["actions_taken"] = cleaned_actions
     else:
+        validation_notes.append(f"actions_taken: expected list, got {type(at).__name__}")
         out["actions_taken"] = []
-    # issue_update：必须是 dict，内部列表字段必须是列表
+    # issue_update：必须是 dict，内部列表字段必须是列表，且逐项校验嵌套结构。
+    # X05：conflicts 项的 evidence 若为 int/str 等非列表，merge 时遍历会 TypeError 崩溃。
+    # 统一校验：嵌套列表、对象、枚举与数值，校验失败时归一化（丢弃坏项/坏字段），
+    # 并在 _validation_notes 中记录具体字段路径，便于追溯（不影响原状态合并）。
     iu = final.get("issue_update", {})
     if isinstance(iu, dict):
         iu = dict(iu)
+        # 先把所有应是列表的字段强制成列表（非列表置空）
         for list_key in ("symptoms", "attempted", "unresolved_questions",
                          "conflicts", "resolved_conflicts", "answered_questions"):
             v = iu.get(list_key)
             if v is not None and not isinstance(v, list):
+                validation_notes.append(f"issue_update.{list_key}: expected list, got {type(v).__name__}")
                 iu[list_key] = []
+        # symptoms / attempted：只保留字符串项
+        for str_list_key in ("symptoms", "attempted"):
+            v = iu.get(str_list_key)
+            if isinstance(v, list):
+                cleaned = [item for item in v if isinstance(item, str)]
+                if len(cleaned) != len(v):
+                    validation_notes.append(f"issue_update.{str_list_key}: filtered non-string items")
+                iu[str_list_key] = cleaned
+        # conflicts：每项是 str 或 dict；dict 的 evidence 必须是字符串列表，
+        # status 必须是合法枚举（active / resolved）。
+        valid_conflict_status = {"active", "resolved"}
+        conflicts = iu.get("conflicts")
+        if isinstance(conflicts, list):
+            cleaned_conflicts = []
+            for idx, item in enumerate(conflicts):
+                path = f"issue_update.conflicts[{idx}]"
+                if isinstance(item, str):
+                    cleaned_conflicts.append(item)
+                elif isinstance(item, dict):
+                    item = dict(item)
+                    ev = item.get("evidence", [])
+                    if isinstance(ev, list):
+                        item["evidence"] = [e for e in ev if isinstance(e, str)]
+                    else:
+                        validation_notes.append(f"{path}.evidence: expected list, got {type(ev).__name__}")
+                        item["evidence"] = []
+                    status = item.get("status")
+                    if not isinstance(status, str) or status not in valid_conflict_status:
+                        validation_notes.append(f"{path}.status: invalid enum {status!r}, defaulting to 'active'")
+                        item["status"] = "active"
+                    cleaned_conflicts.append(item)
+                else:
+                    validation_notes.append(f"{path}: expected str|dict, got {type(item).__name__}")
+            iu["conflicts"] = cleaned_conflicts
+        # resolved_conflicts / answered_questions：每项是 str 或带 id/text 的 dict
+        for resolve_key in ("resolved_conflicts", "answered_questions"):
+            v = iu.get(resolve_key)
+            if isinstance(v, list):
+                cleaned = []
+                for idx, item in enumerate(v):
+                    path = f"issue_update.{resolve_key}[{idx}]"
+                    if isinstance(item, str):
+                        cleaned.append(item)
+                    elif isinstance(item, dict):
+                        # 只保留 id / text 两个字段，丢弃其他意外结构
+                        cleaned.append({
+                            "id": item.get("id") if isinstance(item.get("id"), str) else "",
+                            "text": item.get("text") if isinstance(item.get("text"), str) else "",
+                        })
+                    else:
+                        validation_notes.append(f"{path}: expected str|dict, got {type(item).__name__}")
+                iu[resolve_key] = cleaned
+        # unresolved_questions：每项是 str 或 dict；dict 的 status 必须是合法枚举
+        valid_question_status = {"open", "answered"}
+        questions = iu.get("unresolved_questions")
+        if isinstance(questions, list):
+            cleaned_questions = []
+            for idx, item in enumerate(questions):
+                path = f"issue_update.unresolved_questions[{idx}]"
+                if isinstance(item, str):
+                    cleaned_questions.append(item)
+                elif isinstance(item, dict):
+                    item = dict(item)
+                    # Z02：text 可能是非字符串（如 int 42），必须归一化为字符串，
+                    # 否则后续 "；".join 时 TypeError: expected str instance, int found
+                    text = item.get("text")
+                    if not isinstance(text, str):
+                        validation_notes.append(f"{path}.text: expected str, got {type(text).__name__}, coercing")
+                        item["text"] = str(text) if text is not None else ""
+                    status = item.get("status")
+                    if not isinstance(status, str) or status not in valid_question_status:
+                        validation_notes.append(f"{path}.status: invalid enum {status!r}, defaulting to 'open'")
+                        item["status"] = "open"
+                    cleaned_questions.append(item)
+                else:
+                    validation_notes.append(f"{path}: expected str|dict, got {type(item).__name__}")
+            iu["unresolved_questions"] = cleaned_questions
         # hypotheses：每项必须是 dict，status 必须合法，evidence 必须是字符串列表
         hyps = iu.get("hypotheses")
         if isinstance(hyps, list):
             valid_status = {"testing", "confirmed", "rejected", "conflicted"}
             cleaned_hyps = []
-            for h in hyps:
+            for idx, h in enumerate(hyps):
+                path = f"issue_update.hypotheses[{idx}]"
                 if not isinstance(h, dict):
+                    validation_notes.append(f"{path}: expected dict, got {type(h).__name__}")
                     continue
                 h = dict(h)
-                if h.get("status") not in valid_status:
+                hstatus = h.get("status")
+                if not isinstance(hstatus, str) or hstatus not in valid_status:
+                    validation_notes.append(f"{path}.status: invalid enum {hstatus!r}, defaulting to 'testing'")
                     h["status"] = "testing"
-                # D03：evidence 非列表或含非字符串项 → 归一化为字符串列表，
-                # 防止 state._upsert_hypothesis 遍历时 TypeError 崩溃。
                 ev = h.get("evidence", [])
                 if isinstance(ev, list):
                     h["evidence"] = [e for e in ev if isinstance(e, str)]
                 else:
+                    validation_notes.append(f"{path}.evidence: expected list, got {type(ev).__name__}")
                     h["evidence"] = []
                 cleaned_hyps.append(h)
             iu["hypotheses"] = cleaned_hyps
         elif hyps is not None:
+            validation_notes.append(f"issue_update.hypotheses: expected list, got {type(hyps).__name__}")
             iu["hypotheses"] = []
         out["issue_update"] = iu
     else:
+        validation_notes.append(f"issue_update: expected dict, got {type(iu).__name__}")
         out["issue_update"] = {}
+    # 记录校验发现的字段路径（供调试/审计，不参与业务逻辑）
+    if validation_notes:
+        out["_validation_notes"] = validation_notes
     # escalation：若存在必须是 dict
     esc = final.get("escalation")
     if esc is not None and not isinstance(esc, dict):

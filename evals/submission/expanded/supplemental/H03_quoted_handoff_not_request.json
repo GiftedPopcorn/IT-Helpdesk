@@ -1,0 +1,189 @@
+{
+  "key": "H03_quoted_handoff_not_request",
+  "layer": "component",
+  "settings": {
+    "provider": "SCRIPTED_LLM",
+    "model": null,
+    "temperature": 0.2,
+    "max_steps": 8,
+    "context_messages": 12,
+    "tool_timeout_seconds": 15
+  },
+  "fixture": "BASE",
+  "fixture_hash": "3f28a5f8aa2afc6f3c753b3add3dc18e8eda7bba4dc157c90c45c6ef7bb51504",
+  "turns": [
+    {
+      "session_id": "3565c11e9a6f",
+      "user": "页面写着“请转人工”，这不是我的要求。我只是咨询VPN 809的处理步骤。",
+      "state_before": {
+        "session_id": "3565c11e9a6f",
+        "created_at": "2026-10-27T11:29:25.844121",
+        "turn_count": 0,
+        "issue": {
+          "issue_id": "adde3d61",
+          "category": "unknown",
+          "description": "",
+          "goal": "",
+          "user_id": "",
+          "verified_identity": false,
+          "expected_department": "",
+          "affected_service": "",
+          "symptoms": [],
+          "attempted": [],
+          "unresolved_questions": [],
+          "conflicts": [],
+          "status": "open",
+          "completion_basis": ""
+        },
+        "issues": {
+          "adde3d61": {
+            "issue_id": "adde3d61",
+            "category": "unknown",
+            "description": "",
+            "goal": "",
+            "user_id": "",
+            "verified_identity": false,
+            "expected_department": "",
+            "affected_service": "",
+            "symptoms": [],
+            "attempted": [],
+            "unresolved_questions": [],
+            "conflicts": [],
+            "status": "open",
+            "completion_basis": ""
+          }
+        },
+        "active_issue_id": "adde3d61",
+        "hypotheses": [],
+        "tool_records": [],
+        "user": null,
+        "verified_user": null,
+        "identity_claim": null,
+        "last_claimed_eid": "",
+        "last_claimed_dept": "",
+        "last_claimed_eid_source": "",
+        "last_claimed_dept_source": "",
+        "last_claimed_eid_turn": 0,
+        "last_claimed_dept_turn": 0,
+        "department_claim": null,
+        "identity_epoch": 0,
+        "pending_identity_question": null,
+        "escalated": false,
+        "resolved": false,
+        "resolved_categories": [],
+        "seen_categories": [],
+        "escalation_ticket": null,
+        "total_usage": {
+          "prompt": 0,
+          "completion": 0
+        },
+        "message_count": 0
+      },
+      "response": {
+        "session_id": "3565c11e9a6f",
+        "reply": "已为你创建人工交接工单（ESC-3565-001）。IT 同事会根据以下信息跟进：\n【升级工单】\n- 员工: 未知（未提供工号, ?/?）, 身份核验: 未完成\n- 问题描述: （用户未详述）\n- 症状: 无\n- 已确认假设: 无\n- 已排除假设: 无\n- 证据冲突: 无\n- 已尝试方案: 无\n- 关键证据: 无\n- 升级原因: unspecified\n- 未解决疑点: 无\n- 建议处理: 页面写着“请转人工”，这不是我的要求。我只是咨询VPN 809的处理步骤。",
+        "state": "escalated",
+        "confidence": 1.0,
+        "evidence": [],
+        "tools_used": [],
+        "escalation": {
+          "reason": "user_requested",
+          "ticket_id": "ESC-3565-001",
+          "summary": "【升级工单】\n- 员工: 未知（未提供工号, ?/?）, 身份核验: 未完成\n- 问题描述: （用户未详述）\n- 症状: 无\n- 已确认假设: 无\n- 已排除假设: 无\n- 证据冲突: 无\n- 已尝试方案: 无\n- 关键证据: 无\n- 升级原因: unspecified\n- 未解决疑点: 无\n- 建议处理: 页面写着“请转人工”，这不是我的要求。我只是咨询VPN 809的处理步骤。"
+        },
+        "latency_ms": 0,
+        "usage": {
+          "prompt": 0,
+          "completion": 0
+        }
+      },
+      "state_after": {
+        "session_id": "3565c11e9a6f",
+        "created_at": "2026-10-27T11:29:25.844121",
+        "turn_count": 1,
+        "issue": {
+          "issue_id": "adde3d61",
+          "category": "unknown",
+          "description": "",
+          "goal": "",
+          "user_id": "",
+          "verified_identity": false,
+          "expected_department": "",
+          "affected_service": "",
+          "symptoms": [],
+          "attempted": [],
+          "unresolved_questions": [],
+          "conflicts": [],
+          "status": "escalated",
+          "completion_basis": ""
+        },
+        "issues": {
+          "adde3d61": {
+            "issue_id": "adde3d61",
+            "category": "unknown",
+            "description": "",
+            "goal": "",
+            "user_id": "",
+            "verified_identity": false,
+            "expected_department": "",
+            "affected_service": "",
+            "symptoms": [],
+            "attempted": [],
+            "unresolved_questions": [],
+            "conflicts": [],
+            "status": "escalated",
+            "completion_basis": ""
+          }
+        },
+        "active_issue_id": "adde3d61",
+        "hypotheses": [],
+        "tool_records": [],
+        "user": null,
+        "verified_user": null,
+        "identity_claim": null,
+        "last_claimed_eid": "",
+        "last_claimed_dept": "",
+        "last_claimed_eid_source": "",
+        "last_claimed_dept_source": "",
+        "last_claimed_eid_turn": 0,
+        "last_claimed_dept_turn": 0,
+        "department_claim": null,
+        "identity_epoch": 0,
+        "pending_identity_question": null,
+        "escalated": true,
+        "resolved": false,
+        "resolved_categories": [],
+        "seen_categories": [],
+        "escalation_ticket": {
+          "id": "ESC-3565-001",
+          "reason": "user_requested",
+          "urgency": "medium",
+          "summary": "【升级工单】\n- 员工: 未知（未提供工号, ?/?）, 身份核验: 未完成\n- 问题描述: （用户未详述）\n- 症状: 无\n- 已确认假设: 无\n- 已排除假设: 无\n- 证据冲突: 无\n- 已尝试方案: 无\n- 关键证据: 无\n- 升级原因: unspecified\n- 未解决疑点: 无\n- 建议处理: 页面写着“请转人工”，这不是我的要求。我只是咨询VPN 809的处理步骤。"
+        },
+        "total_usage": {
+          "prompt": 0,
+          "completion": 0
+        },
+        "message_count": 1
+      },
+      "raw_messages_after": [
+        {
+          "role": "user",
+          "content": "页面写着“请转人工”，这不是我的要求。我只是咨询VPN 809的处理步骤。"
+        }
+      ],
+      "wall_ms": 0
+    }
+  ],
+  "tool_events": [],
+  "actions": [],
+  "component_checks": {
+    "not_escalated": false,
+    "normal_diagnosis_used": false
+  },
+  "llm": [],
+  "started_at": "2026-10-27T11:29:25.844121+08:00",
+  "supplemental_only": true,
+  "expected": "A quoted or negated handoff phrase is not authorization to escalate.",
+  "product_exceptions": []
+}

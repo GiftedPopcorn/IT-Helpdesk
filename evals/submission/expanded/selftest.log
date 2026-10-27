@@ -1,0 +1,218 @@
+
+=== search_kb {'query': 'vpn 809 错误'} ===
+{
+ "source": "kb",
+ "query": "vpn 809 错误",
+ "match_count": 3,
+ "results": [
+  {
+   "title": "vpn disconnect windows",
+   "path": "kb/vpn-disconnect-windows.md",
+   "snippet": "## 症状\n- VPN 客户端连接时报错误 809（最常见）\n- VPN 频繁断连（每 10-30 分钟一次）\n- 一直卡在\"正在连接\"无法建立隧道\n- 能连上但无法访问内网系统",
+   "score": 4.1235
+  },
+  {
+   "title": "vpn mfa token expired",
+   "path": "kb/vpn-mfa-token-expired.md",
+   "snippet": "## 诊断步骤\n1. 确认现象属于 MFA 认证失败，而非密码错误或 VPN 客户端问题\n2. 确认用户是否更换了手机或重装了 Authenticator\n3. MFA token 有 90 天有效期，过期后必须由 IT 重置",
+   "score": 1.3
+  },
+  {
+   "title": "wifi certificate error",
+   "path": "kb/wifi-certificate-error.md",
+   "snippet": "# WiFi 证书错误处理指南",
+   "score": 1.1809
+  }
+ ]
+}
+
+=== search_kb {'query': '密码重置 身份核验'} ===
+{
+ "source": "kb",
+ "query": "密码重置 身份核验",
+ "match_count": 3,
+ "results": [
+  {
+   "title": "password reset self service",
+   "path": "kb/password-reset-self-service.md",
+   "snippet": "## 解决步骤\n1. 核验身份：提供 employee_id + 部门信息，与员工目录比对\n2. 由 IT 支持 Agent 执行密码重置，生成临时密码（有效期 30 分钟）\n3. 使用临时密码登录，按提示设置新密码（至少 12 位，含大小写/数字/符号）\n4. 若账号处于 locked 状态，先执行账号解锁再重置密码",
+   "score": 5.2972
+  },
+  {
+   "title": "account lockout",
+   "path": "kb/account-lockout.md",
+   "snippet": "## 解决步骤\n1. 核验身份：employee_id + 部门信息与员工目录比对\n2. 确认无在途密码重置流程后，执行账号解锁（unlock_account）\n3. 解锁后建议立即重置密码，避免旧密码所在设备再次触发锁定\n4. 提醒用户更新手机/VPN 客户端中保存的密码",
+   "score": 4.713
+  },
+  {
+   "title": "vpn mfa token expired",
+   "path": "kb/vpn-mfa-token-expired.md",
+   "snippet": "## 何时升级人工（本场景一律升级）\n- 所有 MFA 重置请求必须由 IT 人工核验身份后执行（策略：mfa_reset → human_verification）\n- 这是为了防止攻击者通过对话渠道重置他人 MFA 从而接管账号\n- Agent 可以做的是：确认现象、告知处理流程、创建带完整上下文的升级工单",
+   "score":
+
+=== get_system_status {'service': 'vpn-gateway'} ===
+{
+ "source": "system_status",
+ "service": "vpn-gateway",
+ "services": [
+  {
+   "name": "vpn-gateway",
+   "status": "degraded",
+   "note": "上海出口带宽拥塞，连接质量下降"
+  }
+ ],
+ "active_incidents": [
+  {
+   "id": "INC-1042",
+   "services": [
+    "vpn-gateway"
+   ],
+   "severity": "major",
+   "summary": "上海办公室 VPN 间歇性断连，出口带宽拥塞中",
+   "started_at": "2026-10-19T21:00:00+08:00",
+   "eta": "约 2 小时后恢复",
+   "workaround": "可切换至杭州出口节点：vpn-hz.acme.com"
+  }
+ ],
+ "recent_changes": [
+  {
+   "id": "CHG-339",
+   "service": "vpn-gateway",
+   "summary": "GlobalProtect 客户端强制升级至 7.2.3",
+   "deployed_at": "2026-10-17T10:00:00+08:00",
+   "status": "completed",
+   "known_issue": "旧版本客户端将无法连接，报错误 809"
+  }
+ ]
+}
+
+=== lookup_user {'query': 'E2001'} ===
+{
+ "source": "user_directory",
+ "query": "E2001",
+ "match_count": 1,
+ "users": [
+  {
+   "employee_id": "E2001",
+   "name": "李娜",
+   "email": "lina@acme.com",
+   "department": "sales",
+   "role": "executive",
+   "location": "beijing",
+   "devices": [
+    {
+     "type": "laptop",
+     "os": "macOS",
+     "hostname": "BJ-LN-01"
+    }
+   ],
+   "entitlements": [
+    "vpn",
+    "salesforce",
+    "email"
+   ],
+   "account_status": "locked",
+   "sponsor": null
+  }
+ ]
+}
+
+=== lookup_user {'query': '张伟'} ===
+{
+ "source": "user_directory",
+ "query": "张伟",
+ "match_count": 2,
+ "users": [
+  {
+   "employee_id": "E1001",
+   "name": "张伟",
+   "email": "zhangwei@acme.com",
+   "department": "engineering",
+   "role": "employee",
+   "location": "shanghai",
+   "devices": [
+    {
+     "type": "laptop",
+     "os": "Windows 11",
+     "hostname": "SH-ZW-01"
+    }
+   ],
+   "entitlements": [
+    "vpn",
+    "jira"
+   ],
+   "account_status": "active",
+   "sponsor": null
+  },
+  {
+   "employee_id": "E1003",
+   "name": "张伟",
+   "email": "zhangwei2@acme.com",
+   "department": "marketing",
+   "role": "employee",
+   "location": "beijing",
+   "devices": [
+    {
+     "type": "laptop",
+     "os": "macOS",
+     "hostname": "BJ-ZW2-01"
+    }
+   ],
+   "entitlements": [
+    "vpn",
+    "email"
+   ],
+   "account_status": "active",
+   "sponsor": null
+  }
+ ]
+}
+
+=== search_tickets {'query': 'mfa token 过期'} ===
+{
+ "source": "ticket_history",
+ "query": "mfa token 过期",
+ "match_count": 2,
+ "results": [
+  {
+   "id": "T-0203",
+   "category": "vpn",
+   "issue_summary": "VPN 登录时 MFA 验证一直失败，提示 token 已过期",
+   "resolution": "MFA 重置属高敏感操作，转人工核验身份后重置 MFA token",
+   "resolved_by": "human"
+  },
+  {
+   "id": "T-0161",
+   "category": "password",
+   "issue_summary": "登录提示密码已过期，要求修改但旧密码记不清",
+   "resolution": "核验身份后执行密码重置，随后账号恢复正常",
+   "resolved_by": "agent"
+  }
+ ]
+}
+
+=== check_policy {'topic': 'mfa_reset'} ===
+{
+ "source": "policy",
+ "topic": "mfa_reset",
+ "actions": [
+  {
+   "action": "mfa_reset",
+   "description": "重置 MFA token / 解绑验证器",
+   "agent_allowed": false,
+   "requires": "human_verification"
+  }
+ ],
+ "match_count": 1
+}
+
+=== execute_action {'action': 'reset_password', 'params': {'employee_id': 'E1001'}} ===
+{
+ "source": "action",
+ "status": "denied",
+ "policy_clause": "reset_password:condition_not_met:identity_verified=False（身份未核验）"
+}
+
+==================================================
+全部工具自测通过
+

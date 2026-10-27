@@ -1,0 +1,12 @@
+[smoke] provider=mock model=deepseek-chat
+[smoke] finish_reason=stop usage=Usage(prompt_tokens=10, completion_tokens=10)
+[smoke] content (json):
+{
+  "state": "need_info",
+  "confidence": 0.3,
+  "user_message": "能再描述一下具体现象吗？比如报错信息、影响的系统、什么时候开始的？",
+  "issue_update": {},
+  "actions_taken": [],
+  "evidence": []
+}
+

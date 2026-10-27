@@ -113,6 +113,18 @@ def _extract_id(text: str) -> str:
     return m.group(0).upper() if m else ""
 
 
+def _extract_department(text: str) -> str:
+    """从用户消息中提取部门声明（用于身份核验的 expected_department）。"""
+    for dept in ("engineering", "finance", "sales", "marketing", "hr", "executive_office",
+                 "it", "operations", "高管办", "工程", "财务", "销售", "市场"):
+        if dept in text:
+            return dept
+    m = re.search(r"部门[是为：:\s]*([a-z_]+)", text, re.IGNORECASE)
+    if m:
+        return m.group(1)
+    return ""
+
+
 class MockLLM(BaseLLM):
     """规则式 mock。规则顺序即优先级：进度规则在前，意图规则在后。"""
 
@@ -152,7 +164,7 @@ class MockLLM(BaseLLM):
                     "user_message": "身份核验通过，我已为你重置密码。临时密码：Temp-8842，"
                                     "30 分钟内有效，登录后请立即修改。",
                     "issue_update": {"category": "password", "description": "密码重置",
-                                     "verified_identity": True},
+                                     "expected_department": _extract_department(c)},
                     "actions_taken": [{"action": "reset_password",
                                        "params": {"employee_id": _extract_id(c) or "E1001"}}],
                     "evidence": ["policy: reset_password", "user_directory: E1001"]})),
@@ -163,6 +175,14 @@ class MockLLM(BaseLLM):
                 lambda u, last, cur, c: _final(_need_info(
                     f"员工目录里没有找到工号 {_extract_id(cur) or '你提供的工号'}，"
                     "请确认工号是否输入正确（格式如 E1001），或告诉我你的注册邮箱。"))),
+            # 已确认目录 0 命中 + 用户仍坚持密码操作 → 升级（身份无法核验）
+            self._r(
+                lambda u, last, cur, c: '"match_count": 0' in c and _is_password_flow(c)
+                and not any(k in last for k in ("确认", "邮箱", "正确", "e1", "e2")),
+                lambda u, last, cur, c: _final(_escalate(
+                    "抱歉，我在员工目录里查不到你的工号，无法核验身份，已为你转接人工支持。",
+                    "用户提供的工号在目录中无匹配记录，身份核验失败，转人工处理。",
+                    "identity_unverified", "medium", "account", ["user_directory: 0 match"]))),
             # 本轮查到状态且命中 INC-1042（上海断连故障）→ 告知已知故障与规避方案
             # （809 排除守卫只看用户最新消息：状态结果里 CHG-339 的 known_issue 本身含"809"，
             #  用全量对话判断会被污染，导致上海场景误走 809 专属规则）
@@ -260,15 +280,21 @@ class MockLLM(BaseLLM):
                     "user_message": "太好了！问题已解决。如果后续再出现断连，随时找我。",
                     "issue_update": {"attempted": ["升级 VPN 客户端至 7.2.3"]},
                     "actions_taken": [], "evidence": []})),
-            # 已给工号（账号/密码流）→ 查目录
+            # 给了工号但没给部门 → 索要部门（必须先于查目录规则）
+            self._r(
+                lambda u, last, cur, c: _extract_id(last) and not _extract_department(c)
+                and '"source": "user_directory"' not in cur and _is_password_flow(c),
+                lambda u, last, cur, c: _final(_need_info(
+                    "请再告诉我你的部门（如 engineering / finance），我需要工号+部门双字段核验身份。"))),
+            # 已给工号+部门（账号/密码流）→ 查目录
             self._r(
                 lambda u, last, cur, c: _extract_id(last) and '"source": "user_directory"' not in cur and _is_password_flow(c),
                 lambda u, last, cur, c: _tools(("lookup_user", {"query": _extract_id(last)}))),
-            # 密码/账号问题但没给工号 → 索要工号
+            # 密码/账号问题但没给工号 → 索要工号+部门
             self._r(
                 lambda u, last, cur, c: _is_password_flow(last) and not _extract_id(last) and '"source": "user_directory"' not in cur,
                 lambda u, last, cur, c: _final(_need_info(
-                    "请问你的工号（employee_id）是多少？我需要先核验身份再帮你处理。"))),
+                    "请问你的工号（employee_id）和所在部门分别是？我需要先核验身份再帮你处理。"))),
             # 超出范围：硬件现场
             self._r(
                 lambda u, last, cur, c: "打印机" in last or "投影" in last,

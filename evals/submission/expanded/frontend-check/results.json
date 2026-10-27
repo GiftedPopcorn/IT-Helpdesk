@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "five scenarios populate editable draft without sending",
+    "response, limited Markdown, XSS defense, sidebar",
+    "feedback is an editable draft",
+    "busy Enter preserves draft; new conversation disabled during request",
+    "IME composition Enter does not send",
+    "HTTP error and explicit draft recovery without retry",
+    "malformed successful HTTP payload rejected",
+    "new conversation resets transcript and summary",
+    "handoff tolerates missing urgency and exposes summary",
+    "390px mobile layout has no horizontal overflow; summary toggles",
+    "no browser JavaScript exceptions"
+  ],
+  "requests": 5,
+  "errors": [],
+  "backend": "isolated fixture; no application imports or model calls"
+}

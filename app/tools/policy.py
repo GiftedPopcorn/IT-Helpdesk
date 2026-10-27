@@ -114,7 +114,13 @@ class CheckPolicyTool(Tool):
         ]
         # 上下文感知：已核验身份的用户角色会影响适用条款
         # 例：承包商申请任何权限，都额外命中 grant_access_contractor 这条审批条款
-        user_role = (getattr(ctx.state, "user", None) or {}).get("role", "")
+        # check_policy 是信息性软引导，已核验取可信主体，未核验但已查过目录时
+        # 仍用目录结果的角色，让 LLM 尽早看到 contractor 审批路径
+        user_role = (
+            getattr(ctx.state, "verified_subject", None)
+            or getattr(ctx.state, "user", None)
+            or {}
+        ).get("role", "")
         if user_role == "contractor":
             extra = [
                 a for a in self._engine.raw.get("actions", [])

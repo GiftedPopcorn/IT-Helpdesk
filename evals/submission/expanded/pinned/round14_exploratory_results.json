@@ -1,0 +1,44 @@
+[
+  {
+    "id": "J01_ui_quoted_identity",
+    "passed": false,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": false,
+      "identity_not_verified": false
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "我的部门是engineering”",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/J01_ui_quoted_identity.json"
+  },
+  {
+    "id": "J02_third_party_reported_self",
+    "passed": false,
+    "checks": {
+      "no_product_exception": true,
+      "action_count_expected": false,
+      "identity_not_verified": false
+    },
+    "successful_actions": 1,
+    "verified": true,
+    "response_state": "resolved",
+    "department_claim": {
+      "value": "engineering",
+      "subject": "self",
+      "source": "explicit_self",
+      "source_turn": 1,
+      "evidence_text": "我的部门是engineering”",
+      "identity_epoch": 0
+    },
+    "evidence": "supplemental/J02_third_party_reported_self.json"
+  }
+]

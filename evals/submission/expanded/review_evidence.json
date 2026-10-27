@@ -1,0 +1,34 @@
+{
+  "reviewed_at": "2026-10-27T03:42:57.074399+00:00",
+  "root": "D:\\paperscode\\it-helpdesk-agent",
+  "source_hashes": {
+    "README.md": "78c2e22ef6386dc1739b6c5156ce9826226f2a261bf3c8f9714928b823eec2e0",
+    "TEST_REPORT.md": "04a298bbe7a02fee7ead163fef7bad09f74ae24bb43d5cafeae8277be038cbce",
+    "evals/runner.py": "ece5c040c0a5a079da9cb831ab4b9ec429fa6234d0ec0d8f5c57a6cd03bba47d",
+    "evals/cases.yaml": "83f5251d9f2a23ae385655e3f071d0b0ed1f246e8a5b73ecfdfa48eeeb2acb2c",
+    "app/agent/loop.py": "46b6c5c3a979d4c6bb20c5afbeabbbd48f8b7fb264ecfbd7f69a49ab6341303a",
+    "app/observability/trace.py": "095943503a75735925f751eb0ab3d66d2e7da72fcead7962cd73c50f3f768648"
+  },
+  "review_source": "Verified source_snapshot of this round; checked against protected file hashes.",
+  "changed_since_test": [],
+  "real_report_exists": false,
+  "evidence": [
+    "selftest.log",
+    "smoke_mock.log",
+    "baseline_mock_report.json",
+    "api_smoke.json",
+    "pinned/regression_report.json",
+    "pinned/uvicorn.log",
+    "runtime_audit.json",
+    "test_metrics.json"
+  ],
+  "cases": {
+    "P01": "模型、工具、动作和用量可追踪，实际回执密码trace泄漏0；S05.1三次均2条输入仅1条turn事件，H02两个环境也复现补充轮缺日志，维持半分。",
+    "P02": "模拟动作、内存存储边界及生产身份认证、持久化、工单集成、成本和延迟方向有说明，不要求作业范围外真实企业集成已经完成。",
+    "R01": "README与入口仍面向员工自助，说明支持范围、解决与交接体验；本轮受保护文档与测试时一致。",
+    "R02": "两环境作者Mock均15/15、工具自测和Mock冒烟通过；TestClient及实际HTTP五端点通过。新增前端11项浏览器交互检查通过（使用本地接口fixture）。",
+    "R03": "手写ReAct、BM25、目录/策略/状态/知识库/历史工单五类数据与模拟动作的实现及取舍有说明。",
+    "V01": "作者15条回归具有具体断言，部分action_executed支持目标/资源匹配；但no_false_success仍只比较动作名集合，不绑定主体/资源/本次请求，partial_success没有启用用例，缺少独立盲测及组合覆盖，给半分。",
+    "V02": "Mock报告正确标记mock 15/15且有代码哈希，但仓库缺少evals/report.real.json；README仍展示真实13/13历史数字，未附对应版本可核验原始报告。依冻结的证据规则记0；不能用本评测的120组替代作者所声称13例的原始证据，也不据此断言历史测试从未发生。"
+  }
+}
