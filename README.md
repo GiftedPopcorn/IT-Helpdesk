@@ -13,8 +13,8 @@ Use **Python 3.11** (submission tested with 3.11.17), Git and a browser. Run com
 ### Windows PowerShell
 
 ```powershell
-git clone https://github.com/GiftedPopcorn/IT-Helpdesk-Agent.git
-cd IT-Helpdesk-Agent
+git clone https://github.com/GiftedPopcorn/IT-Helpdesk.git
+cd IT-Helpdesk
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 Copy-Item .env.example .env
@@ -27,8 +27,8 @@ Using the virtual environment's Python directly avoids activation-policy issues.
 ### macOS / Linux
 
 ```bash
-git clone https://github.com/GiftedPopcorn/IT-Helpdesk-Agent.git
-cd IT-Helpdesk-Agent
+git clone https://github.com/GiftedPopcorn/IT-Helpdesk.git
+cd IT-Helpdesk
 python3.11 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 cp .env.example .env
